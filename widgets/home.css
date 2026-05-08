@@ -1,0 +1,85 @@
+#home-page {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex: 1;
+}
+.home-banner {
+    background: #0a5a9c;
+    color: white;
+    padding: 48px 36px;
+    border: 1px solid #003a6a;
+    text-align: center;
+}
+.home-banner h2 {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: white;
+}
+.home-banner p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 24px;
+}
+.home-banner a {
+    display: inline-block;
+    background: white;
+    color: #004d8e;
+    padding: 12px 32px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.home-banner a:hover { background: #e8f4ff; }
+
+.home-section-title {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+.home-produto-card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+}
+.home-produto-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+}
+.home-produto-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border: 1px solid #eee;
+    margin-bottom: 8px;
+}
+.home-produto-card h3 {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    height: 38px;
+    overflow: hidden;
+    color: #222;
+    margin-bottom: 6px;
+}
+.home-produto-card .preco {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #0066cc;
+}

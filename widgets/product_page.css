@@ -1,0 +1,216 @@
+#product_page {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border: 1px solid #444;
+  padding: 20px;
+  height: 100%;
+  min-width: 70vw;
+  display: flex;
+  gap: 20px;
+}
+ 
+/* Coluna esquerda — foto */
+.product-gallery {
+  width: 420px;
+  flex-shrink: 0;
+}
+ 
+.product-gallery .foto-principal {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid #444;
+  background: #fff;
+  display: block;
+}
+ 
+.product-gallery .miniaturas {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+ 
+.product-gallery .miniaturas img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border: 1px solid #444;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+ 
+.product-gallery .miniaturas img:hover,
+.product-gallery .miniaturas img.ativa {
+  opacity: 1;
+  border-color: #0066cc;
+}
+ 
+/* Coluna direita — detalhes */
+.product-details {
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+ 
+.product-details .product-header {
+  background: white;
+  border: 1px solid #444;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+ 
+.product-details .product-header h1 {
+  font-size: 1.4rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+ 
+.product-details .product-header .vendedor {
+  color: #666;
+  font-size: 0.9rem;
+  display: block;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.product-details .product-header .vendedor:hover {
+  color: #0066cc;
+}
+
+.product-details .product-header .vendedor strong {
+  color: inherit;
+}
+
+.product-details .product-header .vendedor a {
+  color: #0066cc;
+  text-decoration: none;
+}
+ 
+.product-details .product-header .vendedor a:hover {
+  text-decoration: underline;
+}
+ 
+/* Caixa de compra */
+.product-buy-box {
+  background: white;
+  border: 1px solid #444;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+ 
+.product-buy-box .preco {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0066cc;
+  margin-bottom: 4px;
+}
+ 
+.product-buy-box .frete {
+  font-size: 0.88rem;
+  color: #00a650;
+  margin-bottom: 16px;
+}
+ 
+.product-buy-box .quantidade-label {
+  font-size: 0.9rem;
+  color: #444;
+  margin-bottom: 6px;
+}
+ 
+.product-buy-box .quantidade {
+  display: flex;
+  align-items: center;
+  border: 1px solid #444;
+  width: fit-content;
+  margin-bottom: 16px;
+}
+ 
+.product-buy-box .quantidade button {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: white;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+ 
+.product-buy-box .quantidade button:hover {
+  background: #f0f0f0;
+}
+ 
+.product-buy-box .quantidade span {
+  width: 48px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  border-left: 1px solid #444;
+  border-right: 1px solid #444;
+  height: 38px;
+  line-height: 38px;
+}
+ 
+.btn-adicionar {
+  width: 100%;
+  padding: 14px;
+  background: #0066cc;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+ 
+.btn-adicionar:hover {
+  background: #0052a3;
+}
+ 
+.btn-comprar {
+  width: 100%;
+  padding: 14px;
+  background: #00a650;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+ 
+.btn-comprar:hover {
+  background: #008c44;
+}
+ 
+/* Caixa de descrição */
+.product-description {
+  background: white;
+  border: 1px solid #444;
+  padding: 20px;
+}
+ 
+.product-description h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 14px;
+}
+ 
+.product-description p {
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.7;
+}
+ 
+/* Responsivo */
+@media (max-width: 800px) {
+  #product_page {
+    flex-direction: column;
+  }
+ 
+  .product-gallery {
+    width: 100%;
+  }
+}

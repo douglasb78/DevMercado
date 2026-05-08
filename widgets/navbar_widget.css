@@ -1,0 +1,127 @@
+.navbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 1rem;
+	padding: 12px;
+	flex-shrink: 0;
+	background-color: #004d8e;
+	-webkit-box-shadow: 0px 0px 20px 5px rgba(0,0,0,0.05); 
+	box-shadow: 0px 0px 20px 5px rgba(0,0,0,0.05);
+}
+.navbar h1 {
+	font-size: 2rem;
+	color: #fff;
+	font-family: "Poppins", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar button {
+	border-radius:25px;
+	padding:0 16px;
+    background:#0065b8;
+	color:#fff;
+	border:1px solid #444;
+	cursor:pointer;
+}
+
+.nav-links {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	flex-wrap: wrap;
+}
+
+.nav-links a {
+	color: #fff;
+	text-align: center;
+	background: #003a6a;
+	border: 1px solid #444;
+	text-decoration: none;
+	transition: color 0.3s;
+	padding: 10px;
+	min-width: 100px;
+	height: 1.2rem;
+	line-height: 1.2rem;
+	border-radius: 25px;
+	font-family: "Poppins", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-size: 0.9rem;
+}
+
+.nav-links a:hover {
+	color: #fff;
+	background: #0065b8;
+}
+
+.nav-links a#my_store {
+	background: #00646a;
+}
+
+.nav-links a#my_store:hover {
+	background: #007e85;
+}
+
+
+.search-bar {
+	flex: 1;
+	max-width: 1200px;
+	display: flex;
+}
+
+.search-bar input {
+	min-width: 40vh;
+	border: 1px solid #444;
+	padding: 8px;
+	height: 1.2rem;
+	line-height: 1.2rem;
+	margin-right: 4px;
+	border-radius: 25px;
+	font-size: 1rem;
+}
+
+.nav-icons {
+	display: flex;
+	align-items: center;
+	gap: 1.2rem;
+}
+
+.nav-icons a {
+	color: #444;
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+@media (max-width: 992px) {
+	.navbar {
+		flex-direction: column;
+		gap: 1rem;
+	}
+	
+	.search-bar {
+		flex: 2;
+		min-width: 90%;
+		max-width: 95%;
+	}
+	
+	.search-bar input {
+		height: 2.5rem;
+		line-height: 2.5rem;
+		min-width: unset;
+	}
+	
+	.nav-links {
+		width: 100%;
+	}
+	
+	.nav-links a {
+		text-align: center;
+		height: 2.5rem;
+		line-height: 2.5rem;
+	}
+}
+.spacer {
+	flex-grow: 1;
+	min-width: 30px;
+}

@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /
+
+# Não reescreve arquivos (css, js, imagens, etc.)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Todas as requisições vão para o index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
