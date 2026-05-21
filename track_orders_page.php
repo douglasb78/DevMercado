@@ -1,11 +1,13 @@
 <?php
-require_once __DIR__ . '/../dao/PedidoDAO.php';
+session_start();
+require_once __DIR__ . '/dao/PedidoDAO.php';
 
 $dao     = new PedidoDAO();
 $uid     = (int) ($_SESSION['usuario_id'] ?? 0);
 $pedidos = $uid ? $dao->listarPorComprador($uid) : [];
+ob_start();
 ?>
-<link rel="stylesheet" href="/widgets/track_orders_page.css">
+<link rel="stylesheet" href="/css/track_orders_page.css">
 <link rel="stylesheet" href="../index.css">
 <div id="track_orders">
   <h2>Acompanhar Compras</h2>
@@ -14,7 +16,7 @@ $pedidos = $uid ? $dao->listarPorComprador($uid) : [];
     <p style="text-align:center;padding:40px;color:#666;border:1px solid #ddd;">
       Você ainda não fez nenhum pedido.
       <br><br>
-      <a href="/navegar-produtos" style="color:#0066cc;">Ver produtos</a>
+      <a href="/listings_page.php" style="color:#0066cc;">Ver produtos</a>
     </p>
   <?php else: ?>
 
@@ -60,3 +62,8 @@ $pedidos = $uid ? $dao->listarPorComprador($uid) : [];
 
   <?php endif; ?>
 </div>
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

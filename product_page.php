@@ -1,20 +1,27 @@
 <?php
-require_once __DIR__ . '/../dao/ProdutoDAO.php';
+session_start();
+require_once __DIR__ . '/dao/ProdutoDAO.php';
 
 $dao     = new ProdutoDAO();
 $id      = (int) ($_GET['id'] ?? 0);
 $produto = $id ? $dao->buscarPorId($id) : null;
 
+ob_start();
+
 if (!$produto): ?>
-<link rel="stylesheet" href="/widgets/product_page.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/product_page.css">
 <div style="text-align:center;padding:60px;color:#fff;">
   <h2>Produto não encontrado.</h2>
 </div>
-<?php return; endif; ?>
 
-<link rel="stylesheet" href="/widgets/product_page.css">
-<link rel="stylesheet" href="../index.css">
+<?php
+$website_content = ob_get_clean();
+include __DIR__ . '/template/index_template.php';
+return;
+endif;
+?>
+
+<link rel="stylesheet" href="/css/product_page.css">
 <div id="product_page">
 
   <div class="product-gallery">
@@ -30,7 +37,7 @@ if (!$produto): ?>
 
     <div class="product-header">
       <h1><?= htmlspecialchars($produto->nome) ?> #<?= $produto->id ?></h1> 
-      Vendido por: <a href="/loja-fornecedor?id=<?= $produto->fornecedorId ?>" class="vendedor" style="text-decoration:none;color:inherit;">
+      Vendido por: <a href="/view_store_page.php?id=<?= $produto->fornecedorId ?>" class="vendedor" style="text-decoration:none;color:inherit;">
         <strong><?= htmlspecialchars($produto->fornecedorNome) ?></strong>
       </a>
       <div style="margin-top:6px;font-size:0.85rem;color:<?= $produto->estoque > 0 ? '#00a650' : '#c00' ?>;">
@@ -62,7 +69,7 @@ if (!$produto): ?>
             Comprar Agora
           </button>
         <?php else: ?>
-          <a href="/entrar" class="btn-comprar"
+          <a href="/login_page.php" class="btn-comprar"
              style="display:block;text-align:center;text-decoration:none;line-height:3;">
             Entre para comprar
           </a>
@@ -111,7 +118,7 @@ function adicionarCarrinho(produtoId) {
   btn.disabled = true;
   btn.textContent = 'Adicionando...';
 
-  fetch('/index.php', {
+  fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `action=carrinho_adicionar&produto_id=${produtoId}&quantidade=${qtd}`
@@ -133,7 +140,7 @@ function adicionarCarrinho(produtoId) {
 
 function comprarAgora(produtoId) {
   const qtd = parseInt(document.getElementById('qtd').textContent);
-  fetch('/index.php', {
+  fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `action=carrinho_adicionar&produto_id=${produtoId}&quantidade=${qtd}`
@@ -143,8 +150,14 @@ function comprarAgora(produtoId) {
     if (data.erro) {
       mostrarMensagem(data.erro, '#c00');
     } else {
-      window.location.href = '/carrinho-de-compras';
+      window.location.href = '/shopping_cart_page.php';
     }
   });
 }
 </script>
+
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

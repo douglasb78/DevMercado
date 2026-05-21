@@ -1,5 +1,15 @@
-<link rel="stylesheet" href="/widgets/login_register_form.css">
-<link rel="stylesheet" href="../index.css">
+<?php
+session_start();
+require_once __DIR__ . '/include_all.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'registrar') {
+    $auth = new AuthController();
+    $auth->registrar();
+}
+
+ob_start();
+?>
+<link rel="stylesheet" href="/css/login_register_page.css">
 <div class="login-container">
     <h2>Realizar cadastro:</h2>
 
@@ -8,7 +18,7 @@
         <?php unset($_SESSION['auth_erro']); ?>
     <?php endif; ?>
 
-    <form action="/registrar" method="POST">
+    <form action="/register_page.php" method="POST">
         <input type="hidden" name="action" value="registrar">
         <input type="text" name="nome" placeholder="Nome completo" required>
         <br>
@@ -24,3 +34,8 @@
         <button type="submit">Criar conta</button>
     </form>
 </div>
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

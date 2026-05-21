@@ -1,13 +1,22 @@
-<link rel="stylesheet" href="/widgets/profile.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/profile_page.css">
 
 <?php
-require_once __DIR__ . '/../dao/UsuarioDAO.php';
-$usuarioId = $_SESSION['usuario_id'] ?? null;
+session_start();
+require_once __DIR__ . '/include_all.php';
 
+// Processar atualização de perfil
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'atualizar_perfil') {
+    $auth = new AuthController();
+    $auth->atualizarPerfil();
+}
+
+$usuarioId = $_SESSION['usuario_id'] ?? null;
 $dao = new UsuarioDAO();
 $usuario = $dao->buscarPorId($usuarioId);
+
+ob_start();
 ?>
+<link rel="stylesheet" href="/css/profile_page.css">
 
 <div class="profile-container">
     <h2>Meu Perfil</h2>
@@ -22,7 +31,7 @@ $usuario = $dao->buscarPorId($usuarioId);
         <?php unset($_SESSION['erro_perfil']); ?>
     <?php endif; ?>
 
-    <form action="/perfil" method="POST" class="profile-form">
+    <form action="/profile_page.php" method="POST" class="profile-form">
         <input type="hidden" name="action" value="atualizar_perfil">
 
         <div class="form-group">
@@ -70,3 +79,10 @@ $usuario = $dao->buscarPorId($usuarioId);
         <p><strong>Membro desde:</strong> <?= date('d/m/Y', strtotime($usuario->criadoEm)) ?></p>
     </div>
 </div>
+
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>
+

@@ -1,6 +1,4 @@
 <?php
-// Includes:
-
 require_once __DIR__ . '/model/Usuario.php';
 require_once __DIR__ . '/model/Produto.php';
 require_once __DIR__ . '/model/Pedido.php';

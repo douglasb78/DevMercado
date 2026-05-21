@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../dao/ProdutoDAO.php';
-require_once __DIR__ . '/../dao/UsuarioDAO.php';
+session_start();
+require_once __DIR__ . '/dao/ProdutoDAO.php';
+require_once __DIR__ . '/dao/UsuarioDAO.php';
 
 $fornecedorId = (int) ($_GET['id'] ?? 0);
 
@@ -19,9 +20,9 @@ if (!$fornecedor || !$fornecedor->isSupplier) {
 
 $produtoDAO = new ProdutoDAO();
 $produtos = $produtoDAO->listarPorFornecedor($fornecedorId);
+ob_start();
 ?>
-<link rel="stylesheet" href="/widgets/supplier_store.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/view_store_page.css">
 
 <div class="supplier-container">
     <div class="supplier-header">
@@ -44,7 +45,7 @@ $produtos = $produtoDAO->listarPorFornecedor($fornecedorId);
         <?php else: ?>
             <div class="produtos-grid">
                 <?php foreach ($produtos as $p): ?>
-                    <a class="produto-card" href="/produto?id=<?= $p->id ?>" style="text-decoration:none;color:inherit;">
+                    <a class="produto-card" href="/product_page.php?id=<?= $p->id ?>" style="text-decoration:none;color:inherit;">
                         <img src="<?= htmlspecialchars($p->fotoUrl ?: 'https://placehold.co/220x180?text=Sem+Foto') ?>"
                              alt="<?= htmlspecialchars($p->nome) ?>">
                         <h3><?= htmlspecialchars($p->nome) ?></h3>
@@ -62,6 +63,11 @@ $produtos = $produtoDAO->listarPorFornecedor($fornecedorId);
     </div>
 
     <div class="back-link">
-        <a href="/navegar-produtos">← Voltar para produtos</a>
+        <a href="/listings_page.php">← Voltar para produtos</a>
     </div>
 </div>
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

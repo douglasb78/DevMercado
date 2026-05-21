@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../dao/ProdutoDAO.php';
-require_once __DIR__ . '/../dao/UsuarioDAO.php';
+session_start();
+require_once __DIR__ . '/dao/ProdutoDAO.php';
+require_once __DIR__ . '/dao/UsuarioDAO.php';
 
 $produtoDAO = new ProdutoDAO();
 $usuarioDAO = new UsuarioDAO();
@@ -17,9 +18,9 @@ if ($termo) {
     $totalProdutos = count($produtos);
     $totalFornecedores = count($fornecedores);
 }
+ob_start();
 ?>
-<link rel="stylesheet" href="/widgets/search_results_form.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/search_results_page.css">
 <div id="search_results">
   <div class="main-content">
 
@@ -41,7 +42,7 @@ if ($termo) {
           <h2>Fornecedores (<?= $totalFornecedores ?>)</h2>
           <div class="fornecedores-grid">
             <?php foreach ($fornecedores as $f): ?>
-              <a href="/loja-fornecedor?id=<?= $f->id ?>" class="fornecedor-card" style="text-decoration:none;color:inherit;">
+              <a href="/view_store_page.php?id=<?= $f->id ?>" class="fornecedor-card" style="text-decoration:none;color:inherit;">
                 <div class="fornecedor-avatar">
                   <span><?= strtoupper(substr($f->nome, 0, 1)) ?></span>
                 </div>
@@ -72,7 +73,7 @@ if ($termo) {
                 <h3><?= htmlspecialchars($p->nome) ?></h3>
                 <div class="vendedor">
                   Vendido por: 
-                  <a href="/loja-fornecedor?id=<?= $p->fornecedorId ?>" style="color:#667eea;text-decoration:none;">
+                  <a href="/view_store_page.php?id=<?= $p->fornecedorId ?>" style="color:#667eea;text-decoration:none;">
                     <strong><?= htmlspecialchars($p->fornecedorNome) ?></strong>
                   </a>
                 </div>
@@ -85,7 +86,7 @@ if ($termo) {
 
               <div class="acoes">
                 <div class="preco"><?= $p->precoFormatado() ?></div>
-                <a href="/produto?id=<?= $p->id ?>" style="text-decoration:none;">
+                <a href="/product_page.php?id=<?= $p->id ?>" style="text-decoration:none;">
                   <button class="btn-detalhes">Ver Detalhes</button>
                 </a>
               </div>
@@ -98,3 +99,9 @@ if ($termo) {
 
   </div>
 </div>
+
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

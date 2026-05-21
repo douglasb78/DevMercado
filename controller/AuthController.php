@@ -14,17 +14,17 @@ class AuthController {
         $senha = $_POST['password'] ?? '';
 
         if (!$email || !$senha) {
-            $this->erroRedirecionar('Preencha todos os campos.', '/entrar');
+            $this->erroRedirecionar('Preencha todos os campos.', 'login_page.php');
         }
 
         $usuario = $this->dao->buscarPorEmail($email);
 
         if (!$usuario || !password_verify($senha, $usuario->senha)) {
-            $this->erroRedirecionar('E-mail ou senha incorretos.', '/entrar');
+            $this->erroRedirecionar('E-mail ou senha incorretos.', 'login_page.php');
         }
 
         $this->iniciarSessao($usuario);
-        header('Location: /');
+        header('Location: home_page.php');
         exit;
     }
 
@@ -36,39 +36,39 @@ class AuthController {
         $isSupplier = isset($_POST['is_supplier']);
 
         if (!$nome || !$email || !$senha || !$confirm) {
-            $this->erroRedirecionar('Preencha todos os campos.', '/registrar');
+            $this->erroRedirecionar('Preencha todos os campos.', 'register_page.php');
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->erroRedirecionar('E-mail inválido.', '/registrar');
+            $this->erroRedirecionar('E-mail inválido.', 'register_page.php');
         }
         if (strlen($senha) < 6) {
-            $this->erroRedirecionar('A senha deve ter pelo menos 6 caracteres.', '/registrar');
+            $this->erroRedirecionar('A senha deve ter pelo menos 6 caracteres.', 'register_page.php');
         }
         if ($senha !== $confirm) {
-            $this->erroRedirecionar('As senhas não coincidem.', '/registrar');
+            $this->erroRedirecionar('As senhas não coincidem.', 'register_page.php');
         }
         if ($this->dao->emailJaExiste($email)) {
-            $this->erroRedirecionar('Este e-mail já está cadastrado.', '/registrar');
+            $this->erroRedirecionar('Este e-mail já está cadastrado.', 'register_page.php');
         }
 
         $hash    = password_hash($senha, PASSWORD_BCRYPT);
         $usuario = $this->dao->inserir($nome, $email, $hash, $isSupplier);
 
         $this->iniciarSessao($usuario);
-        header('Location: /');
+        header('Location: home_page.php');
         exit;
     }
 
     public function logout(): void {
         session_destroy();
-        header('Location: /');
+        header('Location: home_page.php');
         exit;
     }
 
     public function atualizarPerfil(): void {
         if (empty($_SESSION['usuario_id'])) {
             $_SESSION['erro_perfil'] = 'Faça login para atualizar seu perfil.';
-            header('Location: /entrar');
+            header('Location: login_page.php');
             exit;
         }
 
@@ -83,32 +83,32 @@ class AuthController {
 
         if (!$nome) {
             $_SESSION['erro_perfil'] = 'Nome é obrigatório.';
-            header('Location: /perfil');
+            header('Location: profile_page.php');
             exit;
         }
 
         if (!$email) {
             $_SESSION['erro_perfil'] = 'E-mail é obrigatório.';
-            header('Location: /perfil');
+            header('Location: profile_page.php');
             exit;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['erro_perfil'] = 'E-mail inválido.';
-            header('Location: /perfil');
+            header('Location: profile_page.php');
             exit;
         }
 
         $usuarioAtual = $this->dao->buscarPorId($id);
         if (!$usuarioAtual) {
             $_SESSION['erro_perfil'] = 'Usuário não encontrado.';
-            header('Location: /perfil');
+            header('Location: profile_page.php');
             exit;
         }
 
         if ($email !== $usuarioAtual->email && $this->dao->emailJaExiste($email)) {
             $_SESSION['erro_perfil'] = 'Este e-mail já está cadastrado.';
-            header('Location: /perfil');
+            header('Location: profile_page.php');
             exit;
         }
 
@@ -116,12 +116,12 @@ class AuthController {
         if ($senha) {
             if (strlen($senha) < 6) {
                 $_SESSION['erro_perfil'] = 'A senha deve ter pelo menos 6 caracteres.';
-                header('Location: /perfil');
+                header('Location: profile_page.php');
                 exit;
             }
             if ($senha !== $senhaConfirm) {
                 $_SESSION['erro_perfil'] = 'As senhas não coincidem.';
-                header('Location: /perfil');
+                header('Location: profile_page.php');
                 exit;
             }
             $senhaHash = password_hash($senha, PASSWORD_BCRYPT);
@@ -140,7 +140,7 @@ class AuthController {
         $_SESSION['usuario_nome'] = $usuarioAtualizado->nome;
         $_SESSION['usuario_supplier'] = $usuarioAtualizado->isSupplier;
         $_SESSION['sucesso_perfil'] = 'Perfil atualizado com sucesso!';
-        header('Location: /perfil');
+        header('Location: profile_page.php');
         exit;
     }
 

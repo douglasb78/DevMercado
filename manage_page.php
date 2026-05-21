@@ -1,6 +1,28 @@
 <?php
-require_once __DIR__ . '/../dao/ProdutoDAO.php';
-require_once __DIR__ . '/../dao/PedidoDAO.php';
+session_start();
+require_once __DIR__ . '/include_all.php';
+
+// Processar ações do gerenciamento de loja
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+
+    if ($action === 'produto_cadastrar') {
+        $controller = new ProdutoController();
+        $controller->cadastrar();
+    } elseif ($action === 'pedido_atualizar_status') {
+        $controller = new PedidoController();
+        $controller->atualizarStatus();
+    } elseif ($action === 'produto_atualizar_estoque') {
+        $controller = new ProdutoController();
+        $controller->atualizarEstoque();
+    } elseif ($action === 'produto_atualizar') {
+        $controller = new ProdutoController();
+        $controller->atualizar();
+    } elseif ($action === 'produto_excluir') {
+        $controller = new ProdutoController();
+        $controller->excluir();
+    }
+}
 
 $produtoDao = new ProdutoDAO();
 $pedidoDao  = new PedidoDAO();
@@ -14,9 +36,9 @@ $categorias = [
     'Computadores', 'Notebooks', 'Alimentos & Bebidas',
     'Automóveis', 'Outros',
 ];
+ob_start();
 ?>
-<link rel="stylesheet" href="/widgets/manage_store.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/manage_page.css">
 <div id="manage_store">
 
   <div class="store-header">
@@ -247,7 +269,7 @@ function mostrarMsg(msg, ok = true, elId = 'msg-global') {
 }
 
 function postJson(body) {
-  return fetch('/index.php', {
+  return fetch('/manage_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(body).toString()
@@ -389,3 +411,9 @@ window.addEventListener('click', (e) => {
 
 abrirPainel('cadastrar');
 </script>
+
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

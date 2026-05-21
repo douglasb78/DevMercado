@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../dao/ProdutoDAO.php';
+session_start();
+require_once __DIR__ . '/dao/ProdutoDAO.php';
 
 $dao        = new ProdutoDAO();
 $categorias = $dao->listarCategorias();
@@ -18,19 +19,20 @@ if ($categoriaAtiva) {
 }
 
 $totalPaginas = (int) ceil($total / $porPagina);
+
+ob_start();
 ?>
-<link rel="stylesheet" href="/widgets/products_page.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/listings_page.css">
 <div id="products_page">
 
   <div class="sidebar">
     <h2>Categorias</h2>
-    <a href="/navegar-produtos"
+    <a href="/listings_page.php"
        class="categoria <?= !$categoriaAtiva ? 'active' : '' ?>">
       Todas as Categorias
     </a>
     <?php foreach ($categorias as $cat): ?>
-      <a href="/navegar-produtos?categoria=<?= urlencode($cat['categoria']) ?>"
+      <a href="/listings_page.php?categoria=<?= urlencode($cat['categoria']) ?>"
          class="categoria <?= $categoriaAtiva === $cat['categoria'] ? 'active' : '' ?>">
         <?= htmlspecialchars($cat['categoria']) ?>
         <small>(<?= $cat['total'] ?>)</small>
@@ -51,7 +53,7 @@ $totalPaginas = (int) ceil($total / $porPagina);
         </p>
       <?php else: ?>
         <?php foreach ($produtos as $p): ?>
-          <a class="produto-card" href="/produto?id=<?= $p->id ?>" style="text-decoration:none;color:inherit;">
+          <a class="produto-card" href="/product_page.php?id=<?= $p->id ?>" style="text-decoration:none;color:inherit;">
             <img src="<?= htmlspecialchars($p->fotoUrl ?: 'https://placehold.co/220x180?text=Sem+Foto') ?>"
                  alt="<?= htmlspecialchars($p->nome) ?>">
             <h3><?= htmlspecialchars($p->nome) ?></h3>
@@ -65,7 +67,7 @@ $totalPaginas = (int) ceil($total / $porPagina);
     <?php if ($totalPaginas > 1): ?>
     <div class="paginacao">
       <?php if ($pagina > 1): ?>
-        <a href="/navegar-produtos?pagina=<?= $pagina - 1 ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
+        <a href="/listings_page.php?pagina=<?= $pagina - 1 ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
            style="text-decoration:none;">
           <button>Anterior</button>
         </a>
@@ -76,7 +78,7 @@ $totalPaginas = (int) ceil($total / $porPagina);
       <?php endfor; ?>
 
       <?php if ($pagina < $totalPaginas): ?>
-        <a href="/navegar-produtos?pagina=<?= $pagina + 1 ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
+        <a href="/listings_page.php?pagina=<?= $pagina + 1 ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
            style="text-decoration:none;">
           <button>Próximo</button>
         </a>
@@ -85,3 +87,9 @@ $totalPaginas = (int) ceil($total / $porPagina);
     <?php endif; ?>
   </div>
 </div>
+
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>

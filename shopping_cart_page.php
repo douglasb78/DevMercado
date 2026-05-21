@@ -1,13 +1,33 @@
 <?php
-require_once __DIR__ . '/../dao/CarrinhoDAO.php';
+session_start();
+require_once __DIR__ . '/include_all.php';
+
+// Processar ações do carrinho
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+
+    if ($action === 'carrinho_adicionar') {
+        $controller = new CarrinhoController();
+        $controller->adicionar();
+    } elseif ($action === 'carrinho_atualizar') {
+        $controller = new CarrinhoController();
+        $controller->atualizar();
+    } elseif ($action === 'carrinho_remover') {
+        $controller = new CarrinhoController();
+        $controller->remover();
+    } elseif ($action === 'pedido_finalizar') {
+        $controller = new PedidoController();
+        $controller->finalizar();
+    }
+}
 
 $dao   = new CarrinhoDAO();
 $uid   = (int) ($_SESSION['usuario_id'] ?? 0);
 $itens = $uid ? $dao->listarPorUsuario($uid) : [];
 $total = array_sum(array_map(fn($i) => $i->subtotal(), $itens));
+ob_start();
 ?>
-<link rel="stylesheet" href="/widgets/shopping_cart_form.css">
-<link rel="stylesheet" href="../index.css">
+<link rel="stylesheet" href="/css/shopping_cart_page.css">
 <div id="shopping_cart">
   <h2>Carrinho de Compras</h2>
 
@@ -15,7 +35,7 @@ $total = array_sum(array_map(fn($i) => $i->subtotal(), $itens));
     <p style="text-align:center;padding:40px;color:#666;border:1px solid #ddd;">
       Seu carrinho está vazio.
       <br><br>
-      <a href="/navegar-produtos" style="color:#0066cc;">Ver produtos</a>
+      <a href="/listings_page.php" style="color:#0066cc;">Ver produtos</a>
     </p>
   <?php else: ?>
 
@@ -111,7 +131,7 @@ function alterarQtd(prodId, delta) {
 
   atualizarTotal();
 
-  fetch('/index.php', {
+  fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `action=carrinho_atualizar&produto_id=${prodId}&quantidade=${novaQtd}`
@@ -119,7 +139,7 @@ function alterarQtd(prodId, delta) {
 }
 
 function removerItem(prodId) {
-  fetch('/index.php', {
+  fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `action=carrinho_remover&produto_id=${prodId}`
@@ -141,7 +161,7 @@ function finalizarCompra() {
   btn.disabled = true;
   btn.textContent = 'Processando...';
 
-  fetch('/index.php', {
+  fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: 'action=pedido_finalizar'
@@ -155,7 +175,7 @@ function finalizarCompra() {
     } else {
       mostrarMsg('✓ ' + data.mensagem + ' Redirecionando...');
       setTimeout(() => {
-        window.location.href = '/acompanhar-compras';
+        window.location.href = '/track_orders_page.php?pedido_id=' + data.pedido_id;
       }, 2000);
     }
   })
@@ -166,3 +186,8 @@ function finalizarCompra() {
   });
 }
 </script>
+<?php
+$website_content = ob_get_clean();
+
+include __DIR__ . '/template/index_template.php';
+?>
