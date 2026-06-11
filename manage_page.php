@@ -145,11 +145,11 @@ ob_start();
               if (count($nomes) > 2) $produtosResumo .= ' +' . (count($nomes) - 2);
             ?>
             <tr class="compact-master-row" onclick="toggleDetalhe('entrega-<?= $pedido->id ?>')">
-              <td><strong>#<?= $pedido->id ?></strong><small><?= $pedido->dataCompraFormatada() ?></small></td>
+              <td>#<?= $pedido->id ?><br/><?= $pedido->dataCompraFormatada() ?></td>
               <td><?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?></td>
               <td><?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?></td>
               <td><?= htmlspecialchars($produtosResumo) ?></td>
-              <td>
+              <td class="td-fotos">
                 <?php
                   $items = [];
                   foreach ($pedido->itens as $item) {
@@ -159,7 +159,7 @@ ob_start();
                       'title' => $item->produtoNome,
                     ];
                   }
-                  include __DIR__ . '/template/thumb_carousel.php';
+                  include __DIR__ . '/template/thumb_carroussel.php';
                 ?>
               </td>
               <td onclick="event.stopPropagation()">

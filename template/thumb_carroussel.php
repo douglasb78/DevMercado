@@ -1,7 +1,7 @@
 <?php
-// Reusable thumbnail carousel
-// Expects $items = [ ['src'=>string, 'alt'=>string, 'title'=>string], ... ]
-// Optional: set $thumb_size (px)
+// Carroussel reutilizável, gerado por IA:
+// Recebe $items = [ ['src'=>string, 'alt'=>string, 'title'=>string], ... ]
+// É opcional: $thumb_size (px)
 $thumb_size = $thumb_size ?? 48;
 $id = 'thumbc_' . bin2hex(random_bytes(6));
 ?>
@@ -23,19 +23,8 @@ $id = 'thumbc_' . bin2hex(random_bytes(6));
   <button type="button" class="tc-nav tc-next" aria-label="Próximo" tabindex="-1">›</button>
 </div>
 
-<style>
-/* Carousel styles (scoped) */
-.thumb-carousel { position: relative; max-width: 210px; }
-.thumb-carousel .tc-viewport { overflow: hidden; }
-.thumb-carousel .tc-track { display:flex; gap:6px; transition: transform .35s ease; will-change: transform; padding:4px 0; }
-.thumb-carousel .tc-slide { width:48px; height:48px; border:1px solid #bbb; background:#fff; padding:0; flex:0 0 auto; cursor:pointer; border-radius:6px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.thumb-carousel .tc-slide img { width:100%; height:100%; object-fit:cover; transition: transform .18s ease; display:block; }
-.thumb-carousel .tc-slide:hover img { transform: scale(1.12); }
-.thumb-carousel .tc-nav { position:absolute; top:50%; transform:translateY(-50%); width:28px; height:28px; border-radius:50%; border:1px solid rgba(0,0,0,0.12); background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.08); z-index:2; }
-.thumb-carousel .tc-prev { left:-6px; }
-.thumb-carousel .tc-next { right:-6px; }
-@media (max-width:700px){ .thumb-carousel { max-width:160px; } .thumb-carousel .tc-slide{width:42px;height:42px;} }
-</style>
+
+<link rel="stylesheet" href="/template/css/thumb_carroussel.css">
 
 <script>
 (function(){
@@ -44,7 +33,7 @@ $id = 'thumbc_' . bin2hex(random_bytes(6));
       inited: false,
       initAll: function() {
         document.querySelectorAll('.thumb-carousel[data-carousel]').forEach(function(root){
-          if (root._tcInit) return; // already initialized
+          if (root._tcInit) return;
           root._tcInit = true;
 
           var viewport = root.querySelector('.tc-viewport');
@@ -73,17 +62,15 @@ $id = 'thumbc_' . bin2hex(random_bytes(6));
 
           slides.forEach(function(s, i){
             s.addEventListener('click', function(e){
-              // open image handled by inline onclick; center the clicked slide
               showIndex(i);
             });
           });
 
-          // Wheel support: use mouse wheel (or touchpad) to navigate horizontally
-          // Convert predominant vertical or horizontal delta into next/prev actions.
+          // Use mouse wheel (or touchpad) to navigate horizontally
           var wheelTimeout = null;
           root.addEventListener('wheel', function(e){
-            var dx = e.deltaX || 0;
-            var dy = e.deltaY || 0;
+            var dx = e.deltaX * -1 || 0;
+            var dy = e.deltaY * -1 || 0;
             // determine predominant direction
             var primary = Math.abs(dx) > Math.abs(dy) ? dx : dy;
             // ignore tiny deltas

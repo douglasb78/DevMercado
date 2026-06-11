@@ -127,7 +127,7 @@ ob_start();
           <?php $fotoRaw = $produto->fotoUrl ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
           <tr class="admin-master-row" onclick="toggleDetalhe('produto-<?= $produto->id ?>')">
             <td><?= $produto->id ?></td>
-            <td onclick="event.stopPropagation()">
+            <td onclick="event.stopPropagation()" class="td-fotos">
               <button type="button" class="thumb-button" onclick='abrirImagem(<?= json_encode($fotoRaw) ?>, <?= json_encode($produto->nome) ?>)'>
                 <img src="<?= $foto ?>" alt="<?= htmlspecialchars($produto->nome) ?>">
               </button>
@@ -183,7 +183,7 @@ ob_start();
                 foreach ($pedido->itens as $it) {
                   $items[] = ['src' => $it->produtoFoto ?: 'https://placehold.co/80x80?text=Prod', 'alt' => $it->produtoNome, 'title' => $it->produtoNome];
                 }
-                include __DIR__ . '/template/thumb_carousel.php';
+                include __DIR__ . '/template/thumb_carroussel.php';
               ?>
             </td>
             <td><?= htmlspecialchars(implode(', ', array_map(fn($i)=>$i->produtoNome, array_slice($pedido->itens,0,3))) . (count($pedido->itens)>3 ? ' +' . (count($pedido->itens)-3) : '')) ?></td>

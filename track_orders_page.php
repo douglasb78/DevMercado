@@ -70,7 +70,7 @@ ob_start();
                     'title' => $item->produtoNome,
                   ];
                 }
-                include __DIR__ . '/template/thumb_carousel.php';
+                include __DIR__ . '/template/thumb_carroussel.php';
               ?>
             </td>
             <td><span class="status <?= htmlspecialchars($pedido->status) ?>"><?= $pedido->statusLabel() ?></span></td>

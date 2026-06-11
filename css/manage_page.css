@@ -200,7 +200,7 @@
   padding: 4px 10px;
   border: 1px solid #444;
   font-weight: bold;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   white-space: nowrap;
 }
 .preparacao { background-color: #fff3cd; color: #856404; }
@@ -347,7 +347,7 @@
   padding: 6px 8px;
   text-align: left;
   vertical-align: middle;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
