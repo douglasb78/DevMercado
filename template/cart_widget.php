@@ -26,25 +26,7 @@ $cartTotal = $total;
 $cartQty = $qtyTotal;
 ?>
 
-<style>
-/* Minimal styles for floating cart widget */
-#cart-widget { position: fixed; right: 24px; bottom: 24px; width: 300px; font-family: 'Poppins',sans-serif; z-index: 10000; }
-#cart-widget .cw-toggle { background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.12); padding:10px 12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
-#cart-widget .cw-toggle strong { font-size:0.95rem; }
-#cart-widget .cw-count { margin-left:8px;color:#666;font-size:0.9rem }
-#cart-widget .cw-total { font-weight:700;color:#00a650 }
-#cart-widget .cw-panel { margin-top:8px; background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.08); overflow:hidden; display:none; }
-#cart-widget .cw-items { max-height:260px; overflow:auto; }
-.cw-item { display:flex; gap:8px; padding:10px; align-items:center; border-bottom:1px solid #f0f0f0 }
-.cw-item img { width:48px; height:48px; object-fit:cover; border-radius:6px }
-.cw-item .meta { flex:1 }
-.cw-item .meta .name { font-size:0.92rem; font-weight:600 }
-.cw-item .meta .qty { font-size:0.85rem; color:#666 }
-.cw-item .price { font-weight:700 }
-.cw-actions { padding:10px; text-align:right }
-.cw-actions a { background:#0066cc;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none }
-#cart-widget .cw-extension { margin-top:8px; background:linear-gradient(90deg,#f8fdf9,#f3fff6); padding:10px 12px; border-radius:10px; display:none; box-shadow:0 6px 18px rgba(0,0,0,0.06); font-weight:600 }
-</style>
+<link rel="stylesheet" href="/template/css/cart_widget.css">
 
 <div id="cart-widget" aria-live="polite">
   <div class="cw-toggle" id="cart-widget-toggle" role="button" aria-expanded="false">
@@ -85,7 +67,7 @@ $cartQty = $qtyTotal;
       let qty = 0; let total = 0;
       itemsEl.innerHTML = '';
       if (items.length === 0) {
-        itemsEl.innerHTML = '<div style="padding:14px;color:#666;text-align:center">Carrinho vazio</div>';
+        itemsEl.innerHTML = '<div style="padding:14px;color:#555;text-align:center">Carrinho vazio</div>';
       } else {
         items.forEach(it => {
           qty += Number(it.quantidade || 0);
@@ -166,7 +148,7 @@ $cartQty = $qtyTotal;
       }
     };
 
-    // Inicializar com dados do servidor
+    // inicializar
     window.cartWidget.update(initial);
   })();
 </script>

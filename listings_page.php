@@ -71,24 +71,10 @@ ob_start();
 
     <?php if ($totalPaginas > 1): ?>
     <div class="paginacao">
-      <?php if ($pagina > 1): ?>
-        <a href="/listings_page.php?pagina=<?= $pagina - 1 ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
-           style="text-decoration:none;">
-          <button>Anterior</button>
-        </a>
-      <?php endif; ?>
-
       <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
         <a href="/listings_page.php?pagina=<?= $i ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
            class="<?= $i === $pagina ? 'active' : '' ?>"><?= $i ?></a>
       <?php endfor; ?>
-
-      <?php if ($pagina < $totalPaginas): ?>
-        <a href="/listings_page.php?pagina=<?= $pagina + 1 ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
-           style="text-decoration:none;">
-          <button>Próximo</button>
-        </a>
-      <?php endif; ?>
     </div>
     <?php endif; ?>
   </div>

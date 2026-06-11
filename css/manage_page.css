@@ -1,5 +1,5 @@
 #manage_store {
-  margin: 0 auto;
+  margin: 0 200px;
   padding: 12px;
   background: #eee;
   border: 1px solid #444;
@@ -520,9 +520,6 @@
 @media (max-width: 900px) {
   #manage_store {
     overflow-x: auto;
-  }
-
-  .compact-master-table {
-    min-width: 980px;
+    margin: 0 auto;
   }
 }
