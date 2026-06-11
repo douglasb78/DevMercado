@@ -94,19 +94,32 @@
   font-size: 13px;
   color: #00a650;
 }
+.estoque-disponivel {
+  font-size: 13px;
+  color: #00a650;
+  margin-top: 6px;
+}
+.estoque-indisponivel {
+  font-size: 13px;
+  color: #c00;
+  margin-top: 6px;
+}
 
 .paginacao {
   margin-top: 40px;
   text-align: center;
 }
-.paginacao button, .paginacao span {
+.paginacao button, .paginacao a {
   padding: 10px 16px;
   margin: 0 4px;
   border: 1px solid #444;
   background: white;
   cursor: pointer;
+  color: #222;
+  display: inline-block;
+  text-decoration: none;
 }
-.paginacao button:hover {
+.paginacao button:hover, .paginacao a:hover {
   background: #f0f0f0;
 }
 .paginacao .active {

@@ -20,6 +20,7 @@ ob_start();
 
     <form method="POST">
         <input type="hidden" name="action" value="login">
+        <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '') ?>">
         <input type="text"     name="email"    placeholder="E-mail" required>
         <br>
         <input type="password" name="password" placeholder="Senha"  required>

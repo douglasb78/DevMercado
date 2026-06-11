@@ -11,7 +11,7 @@ class UsuarioDAO {
 
     public function buscarPorEmail(string $email): ?Usuario {
         $stmt = $this->pdo->prepare(
-            'SELECT id, nome, email, senha, is_supplier, telefone, cartaocredito, criado_em
+            'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
                FROM usuarios
               WHERE email = :email
               LIMIT 1'
@@ -23,7 +23,7 @@ class UsuarioDAO {
 
     public function buscarPorId(int $id): ?Usuario {
         $stmt = $this->pdo->prepare(
-            'SELECT id, nome, email, senha, is_supplier, telefone, cartaocredito, criado_em
+            'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
                FROM usuarios
               WHERE id = :id
               LIMIT 1'
@@ -47,13 +47,14 @@ class UsuarioDAO {
         string $senhaHash, 
         bool $isSupplier,
         ?string $telefone = null,
-        ?string $cartaocredito = null
+        ?string $cartaocredito = null,
+        ?string $endereco = null
     ): Usuario {
         
         $stmt = $this->pdo->prepare(
-            'INSERT INTO usuarios (nome, email, senha, is_supplier, telefone, cartaocredito)
-             VALUES (:nome, :email, :senha, :is_supplier, :telefone, :cartaocredito)
-             RETURNING id, nome, email, senha, is_supplier, telefone, cartaocredito, criado_em'
+            'INSERT INTO usuarios (nome, email, senha, is_supplier, telefone, cartaocredito, endereco)
+             VALUES (:nome, :email, :senha, :is_supplier, :telefone, :cartaocredito, :endereco)
+             RETURNING id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em'
         );
         
         $stmt->execute([
@@ -63,6 +64,7 @@ class UsuarioDAO {
             ':is_supplier'  => $isSupplier ? 'true' : 'false',
             ':telefone'     => $telefone ?? '0',
             ':cartaocredito'=> $cartaocredito ?? '0',
+            ':endereco'     => $endereco ?? '',
         ]);
         
         $row = $stmt->fetch();
@@ -75,6 +77,7 @@ class UsuarioDAO {
         ?string $senhaHash = null,
         ?string $telefone = null,
         ?string $cartaocredito = null,
+        ?string $endereco = null,
         ?string $nome = null,
         ?bool $isSupplier = null
     ): Usuario {
@@ -93,6 +96,10 @@ class UsuarioDAO {
             $campos[] = 'cartaocredito = :cartaocredito';
             $params[':cartaocredito'] = $cartaocredito;
         }
+        if ($endereco !== null) {
+            $campos[] = 'endereco = :endereco';
+            $params[':endereco'] = $endereco;
+        }
         if ($nome !== null) {
             $campos[] = 'nome = :nome';
             $params[':nome'] = $nome;
@@ -103,7 +110,7 @@ class UsuarioDAO {
         }
 
         $sql = 'UPDATE usuarios SET ' . implode(', ', $campos) . ' WHERE id = :id
-                RETURNING id, nome, email, senha, is_supplier, telefone, cartaocredito, criado_em';
+                RETURNING id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em';
         
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -115,7 +122,7 @@ class UsuarioDAO {
     public function buscarFornecedores(string $termo): array {
         $like = '%' . $termo . '%';
         $stmt = $this->pdo->prepare(
-            'SELECT id, nome, email, senha, is_supplier, telefone, cartaocredito, criado_em
+            'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
                FROM usuarios
               WHERE is_supplier = true
                 AND (nome ILIKE :termo OR email ILIKE :termo2)
@@ -127,11 +134,33 @@ class UsuarioDAO {
 
     public function listarFornecedores(): array {
         $stmt = $this->pdo->query(
-            'SELECT id, nome, email, senha, is_supplier, telefone, cartaocredito, criado_em
+            'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
                FROM usuarios
               WHERE is_supplier = true
               ORDER BY nome ASC'
         );
         return array_map(fn($r) => new Usuario($r), $stmt->fetchAll());
+    }
+
+    public function listarPorTipo(bool $fornecedores, int $limite, int $offset): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
+               FROM usuarios
+              WHERE is_supplier = :is_supplier
+              ORDER BY nome ASC
+              LIMIT :limite OFFSET :offset'
+        );
+        $stmt->bindValue(':is_supplier', $fornecedores, PDO::PARAM_BOOL);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return array_map(fn($r) => new Usuario($r), $stmt->fetchAll());
+    }
+
+    public function contarPorTipo(bool $fornecedores): int {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM usuarios WHERE is_supplier = :is_supplier');
+        $stmt->bindValue(':is_supplier', $fornecedores, PDO::PARAM_BOOL);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
     }
 }

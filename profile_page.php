@@ -50,6 +50,11 @@ ob_start();
         </div>
 
         <div class="form-group">
+            <label for="endereco">Endereço:</label>
+            <input type="text" id="endereco" name="endereco" value="<?= htmlspecialchars($usuario->endereco ?? '') ?>" placeholder="Rua, número, bairro, cidade">
+        </div>
+
+        <div class="form-group">
             <label for="cartaocredito">Cartão de Crédito:</label>
             <input type="text" id="cartaocredito" name="cartaocredito" value="<?= htmlspecialchars($usuario->cartaocredito ?? '') ?>" placeholder="1234 5678 9012 3456">
         </div>

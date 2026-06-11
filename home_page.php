@@ -8,7 +8,7 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
 }
 
 $dao       = new ProdutoDAO();
-$destaques = $dao->listarTodos(8);
+$destaques = $dao->listarDisponiveis(8);
 
 ob_start();
 ?>

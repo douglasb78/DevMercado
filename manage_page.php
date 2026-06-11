@@ -106,6 +106,11 @@ ob_start();
       <input type="text" id="cad-foto" placeholder="https://...">
     </div>
 
+    <div>
+      <label>Enviar imagem do produto</label>
+      <input type="file" id="cad-foto-arquivo" accept="image/*">
+    </div>
+
     <button class="btn-salvar" type="button" onclick="cadastrarProduto()">Cadastrar Produto</button>
   </div>
 
@@ -129,6 +134,11 @@ ob_start();
             <span class="data-compra">
               Pedido #<?= $pedido->id ?> · <?= $pedido->dataCompraFormatada() ?> ·
               <?= $pedido->totalFormatado() ?>
+            </span>
+            <br>
+            <span class="data-compra">
+              Cliente: <?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?> ·
+              Endereco: <?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?>
             </span>
           </div>
 
@@ -239,6 +249,11 @@ ob_start();
         <input type="text" id="edit-foto" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">
       </div>
 
+      <div style="margin-bottom:15px;">
+        <label style="display:block;font-weight:600;margin-bottom:5px;">Enviar nova imagem</label>
+        <input type="file" id="edit-foto-arquivo" accept="image/*">
+      </div>
+
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" onclick="fecharModalEditar()" style="padding:8px 16px;background:#ccc;border:none;border-radius:4px;cursor:pointer;">Cancelar</button>
         <button type="button" onclick="salvarEdicaoProduto()" style="padding:8px 16px;background:#0066cc;color:white;border:none;border-radius:4px;cursor:pointer;">Salvar</button>
@@ -269,6 +284,13 @@ function mostrarMsg(msg, ok = true, elId = 'msg-global') {
 }
 
 function postJson(body) {
+  if (body instanceof FormData) {
+    return fetch('/manage_page.php', {
+      method: 'POST',
+      body
+    }).then(r => r.json());
+  }
+
   return fetch('/manage_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -283,19 +305,31 @@ function cadastrarProduto() {
   const categoria = document.getElementById('cad-categoria').value;
   const descricao = document.getElementById('cad-descricao').value;
   const foto      = document.getElementById('cad-foto').value.trim();
+  const arquivo   = document.getElementById('cad-foto-arquivo').files[0];
 
   if (!nome || !preco) {
     mostrarMsg('Nome e preço são obrigatórios.', false, 'msg-cadastrar');
     return;
   }
 
-  postJson({ action: 'produto_cadastrar', nome, preco, estoque, categoria, descricao, foto_url: foto })
+  const form = new FormData();
+  form.append('action', 'produto_cadastrar');
+  form.append('nome', nome);
+  form.append('preco', preco);
+  form.append('estoque', estoque);
+  form.append('categoria', categoria);
+  form.append('descricao', descricao);
+  form.append('foto_url', foto);
+  if (arquivo) form.append('foto_arquivo', arquivo);
+
+  postJson(form)
     .then(data => {
       if (data.erro) {
         mostrarMsg(data.erro, false, 'msg-cadastrar');
       } else {
         mostrarMsg('✓ ' + data.mensagem, true, 'msg-cadastrar');
         ['cad-nome','cad-preco','cad-descricao','cad-foto'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('cad-foto-arquivo').value = '';
         document.getElementById('cad-estoque').value = '0';
         document.getElementById('cad-categoria').value = '';
         setTimeout(() => location.reload(), 1500);
@@ -335,6 +369,7 @@ function editarProduto(produtoId, nome, descricao, foto) {
   document.getElementById('edit-nome').value = nome;
   document.getElementById('edit-descricao').value = descricao;
   document.getElementById('edit-foto').value = foto;
+  document.getElementById('edit-foto-arquivo').value = '';
   document.getElementById('modal-editar').style.display = 'flex';
 }
 
@@ -377,19 +412,22 @@ function salvarEdicaoProduto() {
   const nome = document.getElementById('edit-nome').value.trim();
   const descricao = document.getElementById('edit-descricao').value.trim();
   const foto = document.getElementById('edit-foto').value.trim();
+  const arquivo = document.getElementById('edit-foto-arquivo').files[0];
 
   if (!nome) {
     mostrarMsg('Nome é obrigatório.', false);
     return;
   }
 
-  postJson({
-    action: 'produto_atualizar',
-    produto_id: produtoEmEdicao,
-    nome,
-    descricao,
-    foto_url: foto
-  })
+  const form = new FormData();
+  form.append('action', 'produto_atualizar');
+  form.append('produto_id', produtoEmEdicao);
+  form.append('nome', nome);
+  form.append('descricao', descricao);
+  form.append('foto_url', foto);
+  if (arquivo) form.append('foto_arquivo', arquivo);
+
+  postJson(form)
     .then(d => {
       if (!d.erro) {
         mostrarMsg('✓ ' + d.mensagem);

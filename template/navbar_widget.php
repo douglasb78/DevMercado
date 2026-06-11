@@ -13,9 +13,14 @@
             <button onclick="executarBusca()">Buscar</button>
         </div>
 
+        <a href="shopping_cart_page.php">Carrinho</a>
+
         <?php if (!empty($_SESSION['usuario_id'])): ?>
-            <a href="shopping_cart_page.php">Carrinho</a>
             <a href="track_orders_page.php">Acompanhar Compras</a>
+
+            <?php if (!empty($_SESSION['usuario_admin'])): ?>
+                <a href="admin_page.php">Admin</a>
+            <?php endif; ?>
 
             <?php if (!empty($_SESSION['usuario_supplier'])): ?>
                 <a href="manage_page.php" id="my_store">Minha Loja</a>

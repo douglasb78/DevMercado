@@ -24,6 +24,8 @@ ob_start();
         <br>
         <input type="text" name="email" placeholder="E-mail" required>
         <br>
+        <input type="text" name="endereco" placeholder="Endereço">
+        <br>
         <input type="password" name="password" placeholder="Senha" required>
         <br>
         <input type="password" name="password_confirm" placeholder="Confirme a Senha" required>

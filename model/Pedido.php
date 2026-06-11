@@ -7,6 +7,8 @@ class Pedido {
     public string $dataEstimada;
     public float  $total;
     public string $criadoEm;
+    public string $compradorNome;
+    public string $compradorEndereco;
 
     public array $itens = [];
 
@@ -17,6 +19,8 @@ class Pedido {
         $this->dataEstimada =         $dados['data_estimada']  ?? '';
         $this->total        = (float) $dados['total'];
         $this->criadoEm     =         $dados['criado_em']      ?? '';
+        $this->compradorNome =        $dados['comprador_nome'] ?? '';
+        $this->compradorEndereco =    $dados['comprador_endereco'] ?? '';
     }
 
     public function statusLabel(): string {
@@ -25,7 +29,7 @@ class Pedido {
             'transito'   => 'Em trânsito',
             'saiu'       => 'Saiu para entrega',
             'entregue'   => 'Entregue',
-            default      => $this->status,
+            default      => 'Status invÃ¡lido',
         };
     }
 

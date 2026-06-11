@@ -59,21 +59,14 @@ endif;
           <button type="button" onclick="alterarQuantidade(1)">+</button>
         </div>
 
-        <?php if (!empty($_SESSION['usuario_id'])): ?>
-          <button class="btn-adicionar" id="btn-adicionar" type="button"
-                  onclick="adicionarCarrinho(<?= $produto->id ?>)">
-            Adicionar ao Carrinho
-          </button>
-          <button class="btn-comprar" type="button"
-                  onclick="comprarAgora(<?= $produto->id ?>)">
-            Comprar Agora
-          </button>
-        <?php else: ?>
-          <a href="/login_page.php" class="btn-comprar"
-             style="display:block;text-align:center;text-decoration:none;line-height:3;">
-            Entre para comprar
-          </a>
-        <?php endif; ?>
+        <button class="btn-adicionar" id="btn-adicionar" type="button"
+                onclick="adicionarCarrinho(<?= $produto->id ?>)">
+          Adicionar ao Carrinho
+        </button>
+        <button class="btn-comprar" type="button"
+                onclick="comprarAgora(<?= $produto->id ?>)">
+          Comprar Agora
+        </button>
       <?php else: ?>
         <button class="btn-comprar" disabled style="background:#aaa;cursor:not-allowed;">
           Produto Indisponível
@@ -100,6 +93,10 @@ const estoqueMax = <?= $produto->estoque ?>;
 function alterarQuantidade(valor) {
   const span = document.getElementById('qtd');
   let qtd = parseInt(span.textContent);
+  if (valor > 0 && qtd >= estoqueMax) {
+    mostrarMensagem('Não há mais unidades em estoque.', '#c00');
+    return;
+  }
   qtd = Math.max(1, Math.min(estoqueMax, qtd + valor));
   span.textContent = qtd;
 }

@@ -34,8 +34,9 @@ class PedidoDAO {
     /** Pedidos cujos produtos pertencem a um fornecedor */
     public function listarPorFornecedor(int $fornecedorId): array {
         $stmt = $this->pdo->prepare(
-            'SELECT DISTINCT p.*
+            'SELECT DISTINCT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco
                FROM pedidos p
+               JOIN usuarios u      ON u.id = p.comprador_id
                JOIN itens_pedido ip ON ip.pedido_id = p.id
                JOIN produtos pr     ON pr.id = ip.produto_id
               WHERE pr.fornecedor_id = :fid

@@ -4,28 +4,33 @@ require_once __DIR__ . '/../dao/CarrinhoDAO.php';
 
 class PedidoController {
 
-    private PedidoDAO   $pedidoDao;
+    private const STATUS_PERMITIDOS = ['preparacao', 'transito', 'saiu', 'entregue'];
+
+    private PedidoDAO $pedidoDao;
     private CarrinhoDAO $carrinhoDao;
 
     public function __construct() {
-        $this->pedidoDao   = new PedidoDAO();
+        $this->pedidoDao = new PedidoDAO();
         $this->carrinhoDao = new CarrinhoDAO();
     }
 
     public function finalizar(): void {
         $this->requerLogin();
 
-        $uid   = (int) $_SESSION['usuario_id'];
-        $itens = $this->carrinhoDao->listarPorUsuario($uid);
+        $uid = (int) $_SESSION['usuario_id'];
+        $carrinhoController = new CarrinhoController();
+        $carrinhoController->sincronizarUsuario($uid);
+        $itens = $carrinhoController->itens();
 
         if (empty($itens)) {
-            $this->erroJson('Seu carrinho está vazio.');
+            $this->erroJson('Seu carrinho esta vazio.');
         }
 
         try {
             $pedido = $this->pedidoDao->criarDesdoCarrinho($uid, $itens);
+            $carrinhoController->limparCookie();
             $this->jsonSucesso([
-                'mensagem'  => 'Pedido realizado com sucesso!',
+                'mensagem' => 'Pedido realizado com sucesso!',
                 'pedido_id' => $pedido->id,
             ]);
         } catch (RuntimeException $e) {
@@ -36,13 +41,12 @@ class PedidoController {
     public function atualizarStatus(): void {
         $this->requerFornecedor();
 
-        $pedidoId     = (int)   ($_POST['pedido_id']     ?? 0);
-        $status       =          $_POST['status']        ?? '';
-        $dataEstimada =          $_POST['data_estimada'] ?? null;
+        $pedidoId = (int) ($_POST['pedido_id'] ?? 0);
+        $status = trim((string) ($_POST['status'] ?? ''));
+        $dataEstimada = $_POST['data_estimada'] ?? null;
 
-        $statusValidos = ['preparacao', 'transito', 'saiu', 'entregue'];
-        if (!in_array($status, $statusValidos, true)) {
-            $this->erroJson('Status inválido.');
+        if (!in_array($status, self::STATUS_PERMITIDOS, true)) {
+            $this->erroJson('Status invalido.');
         }
 
         $ok = $this->pedidoDao->atualizarStatus(
@@ -52,7 +56,9 @@ class PedidoController {
             (int) $_SESSION['usuario_id']
         );
 
-        if (!$ok) $this->erroJson('Pedido não encontrado ou sem permissão.', 403);
+        if (!$ok) {
+            $this->erroJson('Pedido nao encontrado ou sem permissao.', 403);
+        }
 
         $this->jsonSucesso(['mensagem' => 'Status atualizado!']);
     }
@@ -60,7 +66,8 @@ class PedidoController {
     private function requerLogin(): void {
         if (empty($_SESSION['usuario_id'])) {
             http_response_code(401);
-            echo json_encode(['erro' => 'Não autenticado.']);
+            header('Content-Type: application/json');
+            echo json_encode(['erro' => 'Entre para finalizar a compra.', 'login' => true]);
             exit;
         }
     }

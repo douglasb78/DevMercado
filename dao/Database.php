@@ -19,6 +19,9 @@ class Database {
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
+
+            self::$instance->exec("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false NOT NULL");
+            self::$instance->exec("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco TEXT DEFAULT '' NOT NULL");
         }
         return self::$instance;
     }

@@ -24,6 +24,21 @@ class ProdutoDAO {
         return array_map(fn($r) => new Produto($r), $stmt->fetchAll());
     }
 
+    public function listarDisponiveis(int $limite = 50, int $offset = 0): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT p.*, u.nome AS fornecedor_nome
+               FROM produtos p
+               JOIN usuarios u ON u.id = p.fornecedor_id
+              WHERE p.is_deleted = false AND p.estoque > 0
+              ORDER BY p.criado_em DESC
+              LIMIT :limite OFFSET :offset'
+        );
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return array_map(fn($r) => new Produto($r), $stmt->fetchAll());
+    }
+
     public function listarPorCategoria(string $categoria, int $limite = 50, int $offset = 0): array {
         $stmt = $this->pdo->prepare(
             'SELECT p.*, u.nome AS fornecedor_nome
@@ -136,6 +151,21 @@ class ProdutoDAO {
             $stmt = $this->pdo->query('SELECT COUNT(*) FROM produtos WHERE is_deleted = false');
         }
         return (int) $stmt->fetchColumn();
+    }
+
+    public function listarPorIds(array $ids): array {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if (!$ids) return [];
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT p.*, u.nome AS fornecedor_nome
+               FROM produtos p
+               JOIN usuarios u ON u.id = p.fornecedor_id
+              WHERE p.id IN ($placeholders) AND p.is_deleted = false"
+        );
+        $stmt->execute($ids);
+        return array_map(fn($r) => new Produto($r), $stmt->fetchAll());
     }
 
 

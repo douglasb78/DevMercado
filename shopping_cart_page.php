@@ -21,9 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$dao   = new CarrinhoDAO();
-$uid   = (int) ($_SESSION['usuario_id'] ?? 0);
-$itens = $uid ? $dao->listarPorUsuario($uid) : [];
+$carrinhoController = new CarrinhoController();
+$itens = $carrinhoController->itens();
 $total = array_sum(array_map(fn($i) => $i->subtotal(), $itens));
 ob_start();
 ?>
@@ -122,19 +121,26 @@ function atualizarTotal() {
 
 function alterarQtd(prodId, delta) {
   const novaQtd = Math.max(1, (qtds[prodId] || 1) + delta);
-  qtds[prodId] = novaQtd;
-  document.getElementById('qtd-' + prodId).textContent = novaQtd;
-
-  const sub = novaQtd * precos[prodId];
-  document.getElementById('sub-' + prodId).textContent =
-    'R$ ' + sub.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-
-  atualizarTotal();
 
   fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `action=carrinho_atualizar&produto_id=${prodId}&quantidade=${novaQtd}`
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.erro) {
+      mostrarMsg(data.erro, false);
+      return;
+    }
+    qtds[prodId] = novaQtd;
+    document.getElementById('qtd-' + prodId).textContent = novaQtd;
+
+    const sub = novaQtd * precos[prodId];
+    document.getElementById('sub-' + prodId).textContent =
+      'R$ ' + sub.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+    atualizarTotal();
   });
 }
 
@@ -169,6 +175,10 @@ function finalizarCompra() {
   .then(r => r.json())
   .then(data => {
     if (data.erro) {
+      if (data.login) {
+        window.location.href = '/login_page.php?next=shopping_cart_page.php';
+        return;
+      }
       mostrarMsg(data.erro, false);
       btn.disabled = false;
       btn.textContent = 'Finalizar Compra';

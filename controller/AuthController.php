@@ -24,7 +24,10 @@ class AuthController {
         }
 
         $this->iniciarSessao($usuario);
-        header('Location: home_page.php');
+        (new CarrinhoController())->sincronizarUsuario($usuario->id);
+        $next = trim($_POST['next'] ?? '');
+        $destino = preg_match('/^[a-zA-Z0-9_\/.-]+(\?[a-zA-Z0-9_=&%-]+)?$/', $next) ? $next : 'home_page.php';
+        header('Location: ' . $destino);
         exit;
     }
 
@@ -34,6 +37,7 @@ class AuthController {
         $senha      = $_POST['password']              ?? '';
         $confirm    = $_POST['password_confirm']      ?? '';
         $isSupplier = isset($_POST['is_supplier']);
+        $endereco   = trim($_POST['endereco'] ?? '');
 
         if (!$nome || !$email || !$senha || !$confirm) {
             $this->erroRedirecionar('Preencha todos os campos.', 'register_page.php');
@@ -52,9 +56,10 @@ class AuthController {
         }
 
         $hash    = password_hash($senha, PASSWORD_BCRYPT);
-        $usuario = $this->dao->inserir($nome, $email, $hash, $isSupplier);
+        $usuario = $this->dao->inserir($nome, $email, $hash, $isSupplier, null, null, $endereco);
 
         $this->iniciarSessao($usuario);
+        (new CarrinhoController())->sincronizarUsuario($usuario->id);
         header('Location: home_page.php');
         exit;
     }
@@ -77,6 +82,7 @@ class AuthController {
         $email = trim($_POST['email'] ?? '');
         $telefone = trim($_POST['telefone'] ?? '');
         $cartaocredito = trim($_POST['cartaocredito'] ?? '');
+        $endereco = trim($_POST['endereco'] ?? '');
         $isSupplier = isset($_POST['is_supplier']);
         $senha = $_POST['senha'] ?? '';
         $senhaConfirm = $_POST['senha_confirm'] ?? '';
@@ -133,12 +139,14 @@ class AuthController {
             $senhaHash,
             $telefone ?: null,
             $cartaocredito ?: null,
+            $endereco,
             $nome,
             $isSupplier
         );
 
         $_SESSION['usuario_nome'] = $usuarioAtualizado->nome;
         $_SESSION['usuario_supplier'] = $usuarioAtualizado->isSupplier;
+        $_SESSION['usuario_admin'] = $usuarioAtualizado->isAdmin;
         $_SESSION['sucesso_perfil'] = 'Perfil atualizado com sucesso!';
         header('Location: profile_page.php');
         exit;
@@ -149,6 +157,7 @@ class AuthController {
         $_SESSION['usuario_id']       = $usuario->id;
         $_SESSION['usuario_nome']     = $usuario->nome;
         $_SESSION['usuario_supplier'] = $usuario->isSupplier;
+        $_SESSION['usuario_admin']    = $usuario->isAdmin;
     }
 
     private function erroRedirecionar(string $mensagem, string $destino): never {

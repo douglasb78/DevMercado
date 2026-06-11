@@ -59,6 +59,11 @@ ob_start();
             <h3><?= htmlspecialchars($p->nome) ?></h3>
             <div class="preco"><?= $p->precoFormatado() ?></div>
             <div class="frete">Frete grátis</div>
+            <?php if ($p->estoque > 0): ?>
+              <div class="estoque-disponivel">Em estoque</div>
+            <?php else: ?>
+              <div class="estoque-indisponivel">Sem estoque</div>
+            <?php endif; ?>
           </a>
         <?php endforeach; ?>
       <?php endif; ?>
@@ -74,7 +79,8 @@ ob_start();
       <?php endif; ?>
 
       <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-        <span class="<?= $i === $pagina ? 'active' : '' ?>"><?= $i ?></span>
+        <a href="/listings_page.php?pagina=<?= $i ?><?= $categoriaAtiva ? '&categoria=' . urlencode($categoriaAtiva) : '' ?>"
+           class="<?= $i === $pagina ? 'active' : '' ?>"><?= $i ?></a>
       <?php endfor; ?>
 
       <?php if ($pagina < $totalPaginas): ?>
