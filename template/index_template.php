@@ -1,5 +1,6 @@
 <?php
 define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
+ob_start();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -20,5 +21,7 @@ define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
 </main>
 <footer>
 </footer>
+<?php include __DIR__ . '/cart_widget.php'; ?>
 </body>
 </html>
+<?php ob_end_flush(); ?>

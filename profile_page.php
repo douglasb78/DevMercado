@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="/css/profile_page.css">
-
 <?php
 session_start();
 require_once __DIR__ . '/include_all.php';

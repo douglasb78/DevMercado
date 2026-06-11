@@ -1,67 +1,150 @@
 <?php
 session_start();
-require_once __DIR__ . '/dao/PedidoDAO.php';
+require_once __DIR__ . '/include_all.php';
 
-$dao     = new PedidoDAO();
-$uid     = (int) ($_SESSION['usuario_id'] ?? 0);
-$pedidos = $uid ? $dao->listarPorComprador($uid) : [];
+$dao = new PedidoDAO();
+$uid = (int) ($_SESSION['usuario_id'] ?? 0);
+$pagina = max(1, (int) ($_GET['pagina'] ?? 1));
+$porPagina = 10;
+$offset = ($pagina - 1) * $porPagina;
+
+$total = $uid ? $dao->contarPorComprador($uid) : 0;
+$pedidos = $uid ? $dao->listarPorCompradorPaginado($uid, $porPagina, $offset) : [];
+$totalPaginas = max(1, (int) ceil($total / $porPagina));
+
+function pedidoThumbUrl(?string $url): string {
+    return htmlspecialchars($url ?: 'https://placehold.co/80x80?text=Prod');
+}
+
+function pedidoProdutosResumo(array $itens): string {
+    $nomes = array_map(fn($item) => $item->produtoNome, $itens);
+    $primeiros = array_slice($nomes, 0, 2);
+    $extra = count($nomes) > 2 ? ' +' . (count($nomes) - 2) : '';
+    return htmlspecialchars(implode(', ', $primeiros) . $extra);
+}
+
 ob_start();
 ?>
 <link rel="stylesheet" href="/css/track_orders_page.css">
-<link rel="stylesheet" href="../index.css">
-<div id="track_orders">
-  <h2>Acompanhar Compras</h2>
+
+<div id="track_orders" class="compact-page">
+  <div class="compact-header">
+    <h2>Acompanhar Compras</h2>
+    <span><?= $total ?> pedido<?= $total === 1 ? '' : 's' ?></span>
+  </div>
 
   <?php if (empty($pedidos)): ?>
-    <p style="text-align:center;padding:40px;color:#666;border:1px solid #ddd;">
-      Você ainda não fez nenhum pedido.
+    <p class="empty-state">
+      Voce ainda nao fez nenhum pedido.
       <br><br>
-      <a href="/listings_page.php" style="color:#0066cc;">Ver produtos</a>
+      <a href="/listings_page.php">Ver produtos</a>
     </p>
   <?php else: ?>
-
-    <?php foreach ($pedidos as $pedido): ?>
-      <div style="margin-bottom:24px;">
-        <div style="background:#f5f5f5;border:1px solid #ddd;padding:10px 15px;
-                    font-size:0.88rem;color:#444;margin-bottom:4px;">
-          <strong>Pedido #<?= $pedido->id ?></strong> &nbsp;·&nbsp;
-          <?= $pedido->dataCompraFormatada() ?> &nbsp;·&nbsp;
-          Total: <?= $pedido->totalFormatado() ?>
-        </div>
-
-        <?php foreach ($pedido->itens as $item): ?>
-          <div class="pedido-card">
-            <img src="<?= htmlspecialchars($item->produtoFoto ?: 'https://placehold.co/70x70?text=Prod') ?>"
-                 alt="<?= htmlspecialchars($item->produtoNome) ?>"
-                 class="produto-img">
-
-            <div class="info-principal">
-              <strong><?= htmlspecialchars($item->produtoNome) ?></strong>
-              <div class="detalhes">
-                <?= $item->quantidade ?> unidade<?= $item->quantidade > 1 ? 's' : '' ?> &nbsp;·&nbsp;
-                <?= $item->subtotalFormatado() ?>
-                <br>
-                <span class="data-compra">Comprado em <?= $pedido->dataCompraFormatada() ?></span>
-              </div>
-            </div>
-
-            <div>
-              <div class="status <?= $pedido->status ?>">
-                <?= $pedido->statusLabel() ?>
-              </div>
-              <?php if ($pedido->dataEstimada): ?>
-                <div class="detalhes" style="margin-top:8px;font-size:0.85rem;">
-                  Estimativa: <strong><?= $pedido->dataEstimadaFormatada() ?></strong>
-                </div>
-              <?php endif; ?>
-            </div>
-          </div>
+    <table class="master-table">
+      <thead>
+        <tr>
+          <th>Pedido</th>
+          <th>Produtos</th>
+          <th>Fotos</th>
+          <th>Status</th>
+          <th>Estimativa</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($pedidos as $pedido): ?>
+          <tr class="master-row" onclick="toggleDetalhe('pedido-<?= $pedido->id ?>')">
+            <td>
+              <strong>#<?= $pedido->id ?></strong>
+              <small><?= $pedido->dataCompraFormatada() ?></small>
+            </td>
+            <td><?= pedidoProdutosResumo($pedido->itens) ?></td>
+            <td>
+              <?php
+                $items = [];
+                foreach ($pedido->itens as $item) {
+                  $items[] = [
+                    'src' => $item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod',
+                    'alt' => $item->produtoNome,
+                    'title' => $item->produtoNome,
+                  ];
+                }
+                include __DIR__ . '/template/thumb_carousel.php';
+              ?>
+            </td>
+            <td><span class="status <?= htmlspecialchars($pedido->status) ?>"><?= $pedido->statusLabel() ?></span></td>
+            <td><?= $pedido->dataEstimadaFormatada() ?></td>
+            <td><?= $pedido->totalFormatado() ?></td>
+            <td><button type="button" class="detail-toggle">Detalhes</button></td>
+          </tr>
+          <tr id="pedido-<?= $pedido->id ?>" class="detail-row">
+            <td colspan="7">
+              <table class="detail-table">
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>Qtd</th>
+                    <th>Unitario</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($pedido->itens as $item): ?>
+                    <tr>
+                      <td>
+                        <span class="detail-product">
+                          <img src="<?= pedidoThumbUrl($item->produtoFoto) ?>" alt="<?= htmlspecialchars($item->produtoNome) ?>"
+                               onclick='abrirImagem(<?= json_encode($item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod') ?>, <?= json_encode($item->produtoNome) ?>)'>
+                          <?= htmlspecialchars($item->produtoNome) ?>
+                        </span>
+                      </td>
+                      <td><?= $item->quantidade ?></td>
+                      <td><?= 'R$ ' . number_format($item->precoUnit, 2, ',', '.') ?></td>
+                      <td><?= $item->subtotalFormatado() ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </td>
+          </tr>
         <?php endforeach; ?>
-      </div>
-    <?php endforeach; ?>
+      </tbody>
+    </table>
 
+    <?php if ($totalPaginas > 1): ?>
+      <div class="paginacao">
+        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+          <a class="<?= $i === $pagina ? 'active' : '' ?>" href="/track_orders_page.php?pagina=<?= $i ?>"><?= $i ?></a>
+        <?php endfor; ?>
+      </div>
+    <?php endif; ?>
   <?php endif; ?>
 </div>
+
+<div class="image-modal" id="image-modal" onclick="fecharImagem()">
+  <div class="image-modal-content" onclick="event.stopPropagation()">
+    <button type="button" onclick="fecharImagem()">Fechar</button>
+    <img id="modal-img" src="" alt="">
+    <strong id="modal-title"></strong>
+  </div>
+</div>
+
+<script>
+function toggleDetalhe(id) {
+  document.getElementById(id)?.classList.toggle('visible');
+}
+
+function abrirImagem(src, titulo) {
+  document.getElementById('modal-img').src = src;
+  document.getElementById('modal-title').textContent = titulo;
+  document.getElementById('image-modal').classList.add('visible');
+}
+
+function fecharImagem() {
+  document.getElementById('image-modal').classList.remove('visible');
+}
+</script>
 <?php
 $website_content = ob_get_clean();
 

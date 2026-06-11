@@ -26,7 +26,7 @@ class AuthController {
         $this->iniciarSessao($usuario);
         (new CarrinhoController())->sincronizarUsuario($usuario->id);
         $next = trim($_POST['next'] ?? '');
-        $destino = preg_match('/^[a-zA-Z0-9_\/.-]+(\?[a-zA-Z0-9_=&%-]+)?$/', $next) ? $next : 'home_page.php';
+        $destino = preg_match('/^[a-zA-Z0-9_\/.-]+(\?[a-zA-Z0-9_=&%-]+)?$/', $next) ? $next : 'index.php';
         header('Location: ' . $destino);
         exit;
     }
@@ -60,13 +60,13 @@ class AuthController {
 
         $this->iniciarSessao($usuario);
         (new CarrinhoController())->sincronizarUsuario($usuario->id);
-        header('Location: home_page.php');
+        header('Location: index.php');
         exit;
     }
 
     public function logout(): void {
         session_destroy();
-        header('Location: home_page.php');
+        header('Location: index.php');
         exit;
     }
 

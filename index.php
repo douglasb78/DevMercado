@@ -16,14 +16,12 @@ ob_start();
 <link rel="stylesheet" href="/css/home_page.css">
 
 <div id="home-page">
-    <!-- Banner -->
     <div class="home-banner">
         <h2>Bem-vindo ao DevMercado</h2>
         <p>Os melhores produtos.</p>
         <a href="/listings_page.php">Ver todos os produtos</a>
     </div>
 
-    <!-- Produtos -->
     <?php if (!empty($destaques)): ?>
         <div class="home-section-title">Produtos:</div>
         <div class="home-grid">

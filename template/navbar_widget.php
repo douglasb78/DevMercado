@@ -1,7 +1,7 @@
 <!-- Navbar !-->
 <link rel="stylesheet" href="/template/css/navbar_widget.css">
 <nav class="navbar">
-    <a href="home_page.php" style="text-decoration:none;"><h1>DevMercado</h1></a>
+    <a href="index.php" style="text-decoration:none;"><h1>DevMercado</h1></a>
 
     <div class="nav-links">
         <a href="listings_page.php">Produtos</a>
@@ -27,15 +27,12 @@
             <?php endif; ?>
         <?php endif; ?>
     </div>
-
-    <div class="spacer"></div>
-
     <div class="nav-links">
         <?php if (!empty($_SESSION['usuario_id'])): ?>
             <a href="profile_page.php" style="color:#fff;white-space:nowrap;">
                 <?= htmlspecialchars($_SESSION['usuario_nome']) ?>
             </a>
-            <a href="home_page.php?logout=true">Sair</a>
+            <a href="index.php?logout=true">Sair</a>
         <?php else: ?>
             <a href="register_page.php">Criar conta</a>
             <a href="login_page.php">Entrar</a>

@@ -31,6 +31,33 @@ class PedidoDAO {
         return $pedidos;
     }
 
+    public function listarPorCompradorPaginado(int $compradorId, int $limite, int $offset): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM pedidos
+              WHERE comprador_id = :cid
+              ORDER BY criado_em DESC
+              LIMIT :limite OFFSET :offset'
+        );
+        $stmt->bindValue(':cid', $compradorId, PDO::PARAM_INT);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $pedidos = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $pedido = new Pedido($row);
+            $pedido->itens = $this->listarItensDoPedido($pedido->id);
+            $pedidos[] = $pedido;
+        }
+        return $pedidos;
+    }
+
+    public function contarPorComprador(int $compradorId): int {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM pedidos WHERE comprador_id = :cid');
+        $stmt->execute([':cid' => $compradorId]);
+        return (int) $stmt->fetchColumn();
+    }
+
     /** Pedidos cujos produtos pertencem a um fornecedor */
     public function listarPorFornecedor(int $fornecedorId): array {
         $stmt = $this->pdo->prepare(
@@ -52,6 +79,43 @@ class PedidoDAO {
             $pedidos[] = $pedido;
         }
         return $pedidos;
+    }
+
+    public function listarPorFornecedorPaginado(int $fornecedorId, int $limite, int $offset): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT DISTINCT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco
+               FROM pedidos p
+               JOIN usuarios u      ON u.id = p.comprador_id
+               JOIN itens_pedido ip ON ip.pedido_id = p.id
+               JOIN produtos pr     ON pr.id = ip.produto_id
+              WHERE pr.fornecedor_id = :fid
+              ORDER BY p.criado_em DESC
+              LIMIT :limite OFFSET :offset'
+        );
+        $stmt->bindValue(':fid', $fornecedorId, PDO::PARAM_INT);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $pedidos = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $pedido = new Pedido($row);
+            $pedido->itens = $this->listarItensDoPedidoPorFornecedor($pedido->id, $fornecedorId);
+            $pedidos[] = $pedido;
+        }
+        return $pedidos;
+    }
+
+    public function contarPorFornecedor(int $fornecedorId): int {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(DISTINCT p.id)
+               FROM pedidos p
+               JOIN itens_pedido ip ON ip.pedido_id = p.id
+               JOIN produtos pr     ON pr.id = ip.produto_id
+              WHERE pr.fornecedor_id = :fid'
+        );
+        $stmt->execute([':fid' => $fornecedorId]);
+        return (int) $stmt->fetchColumn();
     }
 
     /** Itens de um pedido */
@@ -90,6 +154,39 @@ class PedidoDAO {
         $pedido = new Pedido($row);
         $pedido->itens = $this->listarItensDoPedido($id);
         return $pedido;
+    }
+
+    /** Lista todos os pedidos (paginação) incluindo nome do comprador e fornecedores envolvidos */
+    public function listarTodosPaginado(int $limite, int $offset): array {
+        $stmt = $this->pdo->prepare(
+                'SELECT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco,
+                    string_agg(DISTINCT uf.nome, \', \' ORDER BY uf.nome) AS fornecedores
+               FROM pedidos p
+               JOIN usuarios u ON u.id = p.comprador_id
+               LEFT JOIN itens_pedido ip ON ip.pedido_id = p.id
+               LEFT JOIN produtos pr ON pr.id = ip.produto_id
+               LEFT JOIN usuarios uf ON uf.id = pr.fornecedor_id
+              GROUP BY p.id, u.nome, u.endereco
+              ORDER BY p.criado_em DESC
+              LIMIT :limite OFFSET :offset'
+        );
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $pedidos = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $pedido = new Pedido($row);
+            $pedido->itens = $this->listarItensDoPedido($pedido->id);
+            $pedidos[] = $pedido;
+        }
+        return $pedidos;
+    }
+
+    public function contarTodos(): int {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM pedidos');
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
     }
 
     // ── Escrita ─────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ class Pedido {
     public string $criadoEm;
     public string $compradorNome;
     public string $compradorEndereco;
+    public string $fornecedores = '';
 
     public array $itens = [];
 
@@ -21,6 +22,7 @@ class Pedido {
         $this->criadoEm     =         $dados['criado_em']      ?? '';
         $this->compradorNome =        $dados['comprador_nome'] ?? '';
         $this->compradorEndereco =    $dados['comprador_endereco'] ?? '';
+        $this->fornecedores =         $dados['fornecedores'] ?? '';
     }
 
     public function statusLabel(): string {

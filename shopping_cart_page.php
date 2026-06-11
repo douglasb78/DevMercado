@@ -94,6 +94,18 @@ const precos = {
 <?php endforeach; ?>
 };
 
+const nomes = {
+<?php foreach ($itens as $item): ?>
+  <?= $item->produtoId ?>: <?= json_encode($item->produtoNome) ?>,
+<?php endforeach; ?>
+};
+
+const fotos = {
+<?php foreach ($itens as $item): ?>
+  <?= $item->produtoId ?>: <?= json_encode($item->produtoFoto ?: '') ?>,
+<?php endforeach; ?>
+};
+
 const qtds = {
 <?php foreach ($itens as $item): ?>
   <?= $item->produtoId ?>: <?= $item->quantidade ?>,
@@ -141,6 +153,17 @@ function alterarQtd(prodId, delta) {
       'R$ ' + sub.toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
     atualizarTotal();
+    if (window.cartWidget && typeof window.cartWidget.update === 'function') {
+      const items = Object.keys(qtds).map(pid => ({
+        produtoId: Number(pid),
+        produtoNome: nomes[pid],
+        produtoPreco: precos[pid],
+        produtoFoto: fotos[pid] || '',
+        quantidade: qtds[pid],
+        subtotal: qtds[pid] * precos[pid]
+      }));
+      window.cartWidget.update(items);
+    }
   });
 }
 
@@ -158,6 +181,9 @@ function removerItem(prodId) {
     atualizarTotal();
     const total = Object.keys(qtds).length;
     document.getElementById('total-itens').textContent = total;
+    if (window.cartWidget && typeof window.cartWidget.removeItem === 'function') {
+      window.cartWidget.removeItem(prodId);
+    }
     if (total === 0) location.reload();
   });
 }

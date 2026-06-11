@@ -2,71 +2,71 @@
 session_start();
 require_once __DIR__ . '/include_all.php';
 
-// Processar ações do gerenciamento de loja
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
     if ($action === 'produto_cadastrar') {
-        $controller = new ProdutoController();
-        $controller->cadastrar();
+        (new ProdutoController())->cadastrar();
     } elseif ($action === 'pedido_atualizar_status') {
-        $controller = new PedidoController();
-        $controller->atualizarStatus();
+        (new PedidoController())->atualizarStatus();
     } elseif ($action === 'produto_atualizar_estoque') {
-        $controller = new ProdutoController();
-        $controller->atualizarEstoque();
+        (new ProdutoController())->atualizarEstoque();
     } elseif ($action === 'produto_atualizar') {
-        $controller = new ProdutoController();
-        $controller->atualizar();
+        (new ProdutoController())->atualizar();
     } elseif ($action === 'produto_excluir') {
-        $controller = new ProdutoController();
-        $controller->excluir();
+        (new ProdutoController())->excluir();
     }
 }
 
 $produtoDao = new ProdutoDAO();
 $pedidoDao  = new PedidoDAO();
 
-$fid      = (int) ($_SESSION['usuario_id'] ?? 0);
+$fid = (int) ($_SESSION['usuario_id'] ?? 0);
 $produtos = $produtoDao->listarPorFornecedor($fid);
-$pedidos  = $pedidoDao->listarPorFornecedor($fid);
+
+$paginaPedidos = max(1, (int) ($_GET['pagina_pedidos'] ?? 1));
+$porPaginaPedidos = 10;
+$offsetPedidos = ($paginaPedidos - 1) * $porPaginaPedidos;
+$totalPedidos = $pedidoDao->contarPorFornecedor($fid);
+$totalPaginasPedidos = max(1, (int) ceil($totalPedidos / $porPaginaPedidos));
+$pedidos = $pedidoDao->listarPorFornecedorPaginado($fid, $porPaginaPedidos, $offsetPedidos);
 
 $categorias = [
     'Eletrodomésticos', 'Celulares & Telefonia', 'Móveis',
     'Computadores', 'Notebooks', 'Alimentos & Bebidas',
     'Automóveis', 'Outros',
 ];
+
 ob_start();
 ?>
 <link rel="stylesheet" href="/css/manage_page.css">
 <div id="manage_store">
 
   <div class="store-header">
-    <h1>Minha Loja — <?= htmlspecialchars($_SESSION['usuario_nome'] ?? '') ?></h1>
+    <h1>Minha Loja - <?= htmlspecialchars($_SESSION['usuario_nome'] ?? '') ?></h1>
   </div>
 
   <div class="store-menu">
     <button class="store-menu-btn active-panel" type="button" onclick="abrirPainel('cadastrar')">
       <span class="btn-titulo">Cadastrar Produto</span>
-      <span class="btn-desc">Adicionar novos produtos à loja.</span>
+      <span class="btn-desc">Adicionar novos produtos.</span>
     </button>
     <button class="store-menu-btn" type="button" onclick="abrirPainel('entregas')">
       <span class="btn-titulo">Gerenciar Entregas</span>
-      <span class="btn-desc">Atualizar o status dos pedidos.</span>
+      <span class="btn-desc">Pedidos em tabela compacta.</span>
     </button>
     <button class="store-menu-btn" type="button" onclick="abrirPainel('estoque')">
       <span class="btn-titulo">Gerenciar Estoque</span>
-      <span class="btn-desc">Definir quantidade disponível de cada produto.</span>
+      <span class="btn-desc">Atualizar quantidades.</span>
     </button>
     <button class="store-menu-btn" type="button" onclick="abrirPainel('produtos')">
-      <span class="btn-titulo">Ver Produtos Cadastrados</span>
-      <span class="btn-desc">Visualizar, editar ou remover produtos.</span>
+      <span class="btn-titulo">Produtos Cadastrados</span>
+      <span class="btn-desc">Editar ou remover itens.</span>
     </button>
   </div>
 
   <div class="store-panel visible" id="painel-cadastrar">
     <h2>Cadastrar Produto</h2>
-
     <div id="msg-cadastrar" style="display:none;padding:10px;margin-bottom:12px;font-weight:600;"></div>
 
     <div class="form-row">
@@ -86,7 +86,7 @@ ob_start();
         <select id="cad-categoria">
           <option value="">Selecione...</option>
           <?php foreach ($categorias as $cat): ?>
-            <option><?= htmlspecialchars($cat) ?></option>
+            <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
@@ -115,51 +115,112 @@ ob_start();
   </div>
 
   <div class="store-panel" id="painel-entregas">
-    <h2>Gerenciar Entregas</h2>
+    <div class="compact-header">
+      <h2>Gerenciar Entregas</h2>
+      <span><?= $totalPedidos ?> pedido<?= $totalPedidos === 1 ? '' : 's' ?></span>
+    </div>
 
     <?php if (empty($pedidos)): ?>
       <p style="color:#666;padding:20px;text-align:center;">Nenhum pedido encontrado.</p>
     <?php else: ?>
-      <?php foreach ($pedidos as $pedido): ?>
-        <div class="pedido-card" id="pedido-<?= $pedido->id ?>">
-          <img src="<?= htmlspecialchars($pedido->itens[0]->produtoFoto ?? 'https://placehold.co/60x60?text=Prod') ?>"
-               alt="Produto" class="produto-img">
+      <table class="compact-master-table">
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Endereço</th>
+            <th>Produtos</th>
+            <th>Fotos</th>
+            <th>Status</th>
+            <th>Data</th>
+            <th>Total</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($pedidos as $pedido): ?>
+            <?php
+              $nomes = array_map(fn($i) => $i->produtoNome, $pedido->itens);
+              $produtosResumo = implode(', ', array_slice($nomes, 0, 2));
+              if (count($nomes) > 2) $produtosResumo .= ' +' . (count($nomes) - 2);
+            ?>
+            <tr class="compact-master-row" onclick="toggleDetalhe('entrega-<?= $pedido->id ?>')">
+              <td><strong>#<?= $pedido->id ?></strong><small><?= $pedido->dataCompraFormatada() ?></small></td>
+              <td><?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?></td>
+              <td><?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?></td>
+              <td><?= htmlspecialchars($produtosResumo) ?></td>
+              <td>
+                <?php
+                  $items = [];
+                  foreach ($pedido->itens as $item) {
+                    $items[] = [
+                      'src' => $item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod',
+                      'alt' => $item->produtoNome,
+                      'title' => $item->produtoNome,
+                    ];
+                  }
+                  include __DIR__ . '/template/thumb_carousel.php';
+                ?>
+              </td>
+              <td onclick="event.stopPropagation()">
+                <select id="status-<?= $pedido->id ?>">
+                  <?php foreach (['preparacao'=>'Em preparação','transito'=>'Em trânsito','saiu'=>'Saiu para entrega','entregue'=>'Entregue'] as $val => $label): ?>
+                    <option value="<?= $val ?>" <?= $pedido->status === $val ? 'selected' : '' ?>>
+                      <?= $label ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </td>
+              <td onclick="event.stopPropagation()">
+                <input type="date" id="data-<?= $pedido->id ?>" value="<?= htmlspecialchars($pedido->dataEstimada) ?>">
+              </td>
+              <td><?= $pedido->totalFormatado() ?></td>
+              <td onclick="event.stopPropagation()">
+                <button class="btn-salvar btn-compacto" type="button" onclick="salvarStatus(<?= $pedido->id ?>)">Salvar</button>
+              </td>
+            </tr>
+            <tr id="entrega-<?= $pedido->id ?>" class="compact-detail-row">
+              <td colspan="9">
+                <table class="compact-detail-table">
+                  <thead>
+                    <tr>
+                      <th>Produto</th>
+                      <th>Qtd</th>
+                      <th>Unitário</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($pedido->itens as $item): ?>
+                      <?php $fotoRaw = $item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
+                      <tr>
+                        <td>
+                          <span class="detail-product">
+                            <img src="<?= $foto ?>" alt="<?= htmlspecialchars($item->produtoNome) ?>"
+                                 onclick='abrirImagem(<?= json_encode($fotoRaw) ?>, <?= json_encode($item->produtoNome) ?>)'>
+                            <?= htmlspecialchars($item->produtoNome) ?>
+                          </span>
+                        </td>
+                        <td><?= $item->quantidade ?></td>
+                        <td><?= 'R$ ' . number_format($item->precoUnit, 2, ',', '.') ?></td>
+                        <td><?= $item->subtotalFormatado() ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
 
-          <div class="info-principal">
-            <strong>
-              <?php $nomes = array_map(fn($i) => $i->produtoNome, $pedido->itens);
-                    echo htmlspecialchars(implode(', ', array_slice($nomes, 0, 2)));
-                    if (count($nomes) > 2) echo ' +' . (count($nomes) - 2); ?>
-            </strong><br>
-            <span class="data-compra">
-              Pedido #<?= $pedido->id ?> · <?= $pedido->dataCompraFormatada() ?> ·
-              <?= $pedido->totalFormatado() ?>
-            </span>
-            <br>
-            <span class="data-compra">
-              Cliente: <?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?> ·
-              Endereco: <?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?>
-            </span>
-          </div>
-
-          <div class="acoes-entrega">
-            <select id="status-<?= $pedido->id ?>">
-              <?php foreach (['preparacao'=>'Em preparação','transito'=>'Em trânsito','saiu'=>'Saiu para entrega','entregue'=>'Entregue'] as $val => $label): ?>
-                <option value="<?= $val ?>" <?= $pedido->status === $val ? 'selected' : '' ?>>
-                  <?= $label ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <div>
-              <label style="font-size:0.8rem;color:#666;">Data prevista:</label>
-              <input type="date" id="data-<?= $pedido->id ?>"
-                     value="<?= htmlspecialchars($pedido->dataEstimada) ?>">
-            </div>
-            <button class="btn-salvar" type="button" style="padding:6px 16px;font-size:0.85rem;"
-                    onclick="salvarStatus(<?= $pedido->id ?>)">Salvar</button>
-          </div>
+      <?php if ($totalPaginasPedidos > 1): ?>
+        <div class="compact-pagination">
+          <?php for ($i = 1; $i <= $totalPaginasPedidos; $i++): ?>
+            <a class="<?= $i === $paginaPedidos ? 'active' : '' ?>" href="/manage_page.php?pagina_pedidos=<?= $i ?>"><?= $i ?></a>
+          <?php endfor; ?>
         </div>
-      <?php endforeach; ?>
+      <?php endif; ?>
     <?php endif; ?>
   </div>
 
@@ -185,11 +246,9 @@ ob_start();
               <td><?= htmlspecialchars($p->nome) ?></td>
               <td><?= htmlspecialchars($p->categoria) ?></td>
               <td id="est-atual-<?= $p->id ?>"><?= $p->estoque ?></td>
-              <td><input type="number" id="est-novo-<?= $p->id ?>"
-                         value="<?= $p->estoque ?>" min="0"></td>
+              <td><input type="number" id="est-novo-<?= $p->id ?>" value="<?= $p->estoque ?>" min="0"></td>
               <td>
-                <button class="btn-salvar" type="button" style="padding:6px 14px;font-size:0.85rem;"
-                        onclick="salvarEstoque(<?= $p->id ?>)">Salvar</button>
+                <button class="btn-salvar btn-compacto" type="button" onclick="salvarEstoque(<?= $p->id ?>)">Salvar</button>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -204,25 +263,40 @@ ob_start();
     <?php if (empty($produtos)): ?>
       <p style="color:#666;padding:20px;text-align:center;">Nenhum produto cadastrado ainda.</p>
     <?php else: ?>
-      <div class="produtos-cadastrados-grid" id="grid-produtos">
-        <?php foreach ($produtos as $p): ?>
-          <div class="produto-cadastrado-card" id="card-<?= $p->id ?>">
-            <img src="<?= htmlspecialchars($p->fotoUrl ?: 'https://placehold.co/200x140?text=Sem+Foto') ?>"
-                 alt="<?= htmlspecialchars($p->nome) ?>">
-            <span class="nome"><?= htmlspecialchars($p->nome) ?></span>
-            <span class="preco"><?= $p->precoFormatado() ?></span>
-            <span class="estoque-badge">Estoque: <?= $p->estoque ?> unidades</span>
-            <div class="card-acoes">
-              <button type="button" onclick="editarProduto(<?= $p->id ?>, '<?= htmlspecialchars(addslashes($p->nome)) ?>', '<?= htmlspecialchars(addslashes($p->descricao)) ?>', '<?= htmlspecialchars(addslashes($p->fotoUrl)) ?>')" class="btn-editar">Editar</button>
-              <button type="button" 
-                onclick="confirmarExclusao(<?= $p->id ?>, '<?= htmlspecialchars(addslashes($p->nome)) ?>')" 
-                class="btn-excluir">
-                Excluir
-            </button>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      </div>
+      <table class="compact-master-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Foto</th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Preço</th>
+            <th>Estoque</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($produtos as $p): ?>
+            <?php $fotoRaw = $p->fotoUrl ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
+            <tr id="card-<?= $p->id ?>">
+              <td><?= $p->id ?></td>
+              <td>
+                <button type="button" class="thumb-button" onclick='abrirImagem(<?= json_encode($fotoRaw) ?>, <?= json_encode($p->nome) ?>)'>
+                  <img src="<?= $foto ?>" alt="<?= htmlspecialchars($p->nome) ?>">
+                </button>
+              </td>
+              <td><?= htmlspecialchars($p->nome) ?></td>
+              <td><?= htmlspecialchars($p->categoria) ?></td>
+              <td><?= $p->precoFormatado() ?></td>
+              <td><?= $p->estoque ?></td>
+              <td>
+                <button type="button" onclick="editarProduto(<?= $p->id ?>, '<?= htmlspecialchars(addslashes($p->nome)) ?>', '<?= htmlspecialchars(addslashes($p->descricao)) ?>', '<?= htmlspecialchars(addslashes($p->fotoUrl)) ?>')" class="btn-editar">Editar</button>
+                <button type="button" onclick="confirmarExclusao(<?= $p->id ?>, '<?= htmlspecialchars(addslashes($p->nome)) ?>')" class="btn-excluir">Excluir</button>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
     <?php endif; ?>
   </div>
 
@@ -233,32 +307,35 @@ ob_start();
   <div id="modal-editar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;justify-content:center;align-items:center;">
     <div style="background:white;padding:30px;border-radius:8px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;">
       <h3 style="margin-top:0;">Editar Produto</h3>
-      
       <div style="margin-bottom:15px;">
         <label style="display:block;font-weight:600;margin-bottom:5px;">Nome *</label>
         <input type="text" id="edit-nome" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">
       </div>
-
       <div style="margin-bottom:15px;">
         <label style="display:block;font-weight:600;margin-bottom:5px;">Descrição</label>
         <textarea id="edit-descricao" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;min-height:100px;"></textarea>
       </div>
-
       <div style="margin-bottom:15px;">
         <label style="display:block;font-weight:600;margin-bottom:5px;">URL da foto</label>
         <input type="text" id="edit-foto" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">
       </div>
-
       <div style="margin-bottom:15px;">
         <label style="display:block;font-weight:600;margin-bottom:5px;">Enviar nova imagem</label>
         <input type="file" id="edit-foto-arquivo" accept="image/*">
       </div>
-
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" onclick="fecharModalEditar()" style="padding:8px 16px;background:#ccc;border:none;border-radius:4px;cursor:pointer;">Cancelar</button>
         <button type="button" onclick="salvarEdicaoProduto()" style="padding:8px 16px;background:#0066cc;color:white;border:none;border-radius:4px;cursor:pointer;">Salvar</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="image-modal" id="image-modal" onclick="fecharImagem()">
+  <div class="image-modal-content" onclick="event.stopPropagation()">
+    <button type="button" onclick="fecharImagem()">Fechar</button>
+    <img id="modal-img" src="" alt="">
+    <strong id="modal-title"></strong>
   </div>
 </div>
 
@@ -274,6 +351,20 @@ function abrirPainel(id) {
   });
 }
 
+function toggleDetalhe(id) {
+  document.getElementById(id)?.classList.toggle('visible');
+}
+
+function abrirImagem(src, titulo) {
+  document.getElementById('modal-img').src = src;
+  document.getElementById('modal-title').textContent = titulo;
+  document.getElementById('image-modal').classList.add('visible');
+}
+
+function fecharImagem() {
+  document.getElementById('image-modal').classList.remove('visible');
+}
+
 function mostrarMsg(msg, ok = true, elId = 'msg-global') {
   const el = document.getElementById(elId);
   el.textContent = msg;
@@ -285,10 +376,7 @@ function mostrarMsg(msg, ok = true, elId = 'msg-global') {
 
 function postJson(body) {
   if (body instanceof FormData) {
-    return fetch('/manage_page.php', {
-      method: 'POST',
-      body
-    }).then(r => r.json());
+    return fetch('/manage_page.php', { method: 'POST', body }).then(r => r.json());
   }
 
   return fetch('/manage_page.php', {
@@ -299,13 +387,13 @@ function postJson(body) {
 }
 
 function cadastrarProduto() {
-  const nome      = document.getElementById('cad-nome').value.trim();
-  const preco     = document.getElementById('cad-preco').value;
-  const estoque   = document.getElementById('cad-estoque').value;
+  const nome = document.getElementById('cad-nome').value.trim();
+  const preco = document.getElementById('cad-preco').value;
+  const estoque = document.getElementById('cad-estoque').value;
   const categoria = document.getElementById('cad-categoria').value;
   const descricao = document.getElementById('cad-descricao').value;
-  const foto      = document.getElementById('cad-foto').value.trim();
-  const arquivo   = document.getElementById('cad-foto-arquivo').files[0];
+  const foto = document.getElementById('cad-foto').value.trim();
+  const arquivo = document.getElementById('cad-foto-arquivo').files[0];
 
   if (!nome || !preco) {
     mostrarMsg('Nome e preço são obrigatórios.', false, 'msg-cadastrar');
@@ -340,7 +428,7 @@ function cadastrarProduto() {
 
 function salvarStatus(pedidoId) {
   const status = document.getElementById('status-' + pedidoId).value;
-  const data   = document.getElementById('data-'   + pedidoId).value;
+  const data = document.getElementById('data-' + pedidoId).value;
 
   postJson({ action: 'pedido_atualizar_status', pedido_id: pedidoId, status, data_estimada: data })
     .then(d => mostrarMsg(d.erro ? d.erro : '✓ ' + d.mensagem, !d.erro))
@@ -379,29 +467,20 @@ function fecharModalEditar() {
 }
 
 function confirmarExclusao(produtoId, nomeProduto) {
-    if (confirm(`Tem certeza que deseja excluir o produto "${nomeProduto}"?\n\nEssa ação não pode ser desfeita facilmente.`)) {
-        excluirProduto(produtoId);
-    }
+  if (confirm(`Tem certeza que deseja excluir o produto "${nomeProduto}"?`)) {
+    excluirProduto(produtoId);
+  }
 }
 
 function excluirProduto(produtoId) {
-    postJson({
-        action: 'produto_excluir',
-        produto_id: produtoId
-    })
+  postJson({ action: 'produto_excluir', produto_id: produtoId })
     .then(d => {
-        if (!d.erro) {
-            mostrarMsg('✓ Produto excluído com sucesso!', true);
-            // remove o card da interface
-            const card = document.getElementById('card-' + produtoId);
-            if (card) {
-                card.style.transition = 'opacity 0.4s';
-                card.style.opacity = '0';
-                setTimeout(() => card.remove(), 400);
-            }
-        } else {
-            mostrarMsg(d.erro, false);
-        }
+      if (!d.erro) {
+        mostrarMsg('✓ Produto excluído com sucesso!', true);
+        document.getElementById('card-' + produtoId)?.remove();
+      } else {
+        mostrarMsg(d.erro, false);
+      }
     })
     .catch(() => mostrarMsg('Erro ao excluir o produto.', false));
 }
@@ -442,12 +521,10 @@ function salvarEdicaoProduto() {
 
 window.addEventListener('click', (e) => {
   const modal = document.getElementById('modal-editar');
-  if (e.target === modal) {
-    fecharModalEditar();
-  }
+  if (e.target === modal) fecharModalEditar();
 });
 
-abrirPainel('cadastrar');
+abrirPainel(new URLSearchParams(window.location.search).has('pagina_pedidos') ? 'entregas' : 'cadastrar');
 </script>
 
 <?php

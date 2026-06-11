@@ -1,81 +1,221 @@
 #track_orders {
+  width: min(1180px, 94vw);
   margin: 0 auto;
-  background: white;
+  background: #fff;
   border: 1px solid #444;
-  padding: 20px;
-  height: 100%;
-  min-width: 70vw;
+  padding: 14px;
+  flex-grow: 1;
 }
 
-#track_orders h2 {
-	margin-bottom: 1.5vw;
-}
-
-.pedido-card {
-  border: 1px solid #444;
-  padding: 12px 15px;
-  margin-bottom: 15px;
+.compact-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.produto-img {
-  width: 70px;
-  height: 70px;
+.compact-header h2 {
+  font-size: 1.1rem;
+}
+
+.compact-header span {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 36px;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.empty-state a {
+  color: #0066cc;
+}
+
+.master-table,
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.master-table th,
+.master-table td,
+.detail-table th,
+.detail-table td {
+  border: 1px solid #ddd;
+  padding: 7px 8px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 0.84rem;
+}
+
+.master-table th,
+.detail-table th {
+  background: #f3f3f3;
+  font-weight: 600;
+}
+
+.master-row {
+  cursor: pointer;
+}
+
+.master-row:hover td {
+  background: #fafafa;
+}
+
+.master-row td:first-child small {
+  display: block;
+  color: #666;
+  margin-top: 2px;
+}
+
+.detail-row {
+  display: none;
+}
+
+.detail-row.visible {
+  display: table-row;
+}
+
+.detail-row > td {
+  background: #fbfbfb;
+  padding: 8px;
+}
+
+.thumb-carousel {
+  display: flex;
+  gap: 6px;
+  max-width: 210px;
+  overflow-x: hidden;
+  padding-bottom: 2px;
+}
+
+.thumb-button {
+  border: 1px solid #bbb;
+  background: #fff;
+  padding: 0;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.thumb-button img,
+.detail-product img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 1px solid #444;
-  flex-shrink: 0;
-}
-
-.info-principal {
-  flex: 1;
-  min-width: 200px;
-}
-
-.info-principal strong {
-  font-size: 15px;
-  line-height: 1.3;
 }
 
 .status {
-  padding: 6px 12px;
+  display: inline-block;
+  min-width: 92px;
+  padding: 4px 8px;
   border: 1px solid #444;
-  font-weight: bold;
+  font-size: 0.76rem;
+  font-weight: 700;
   text-align: center;
-  font-size: 14px;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .preparacao { background-color: #fff3cd; color: #856404; }
-.transito    { background-color: #cce5ff; color: #004085; }
-.saiu        { background-color: #d1ecf1; color: #0c5460; }
-.entregue    { background-color: #d4edda; color: #155724; }
+.transito   { background-color: #cce5ff; color: #004085; }
+.saiu       { background-color: #d1ecf1; color: #0c5460; }
+.entregue   { background-color: #d4edda; color: #155724; }
 
-.acoes {
+.detail-toggle {
+  border: 1px solid #444;
+  background: #fff;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.detail-product {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-product img {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #bbb;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.paginacao {
+  margin-top: 12px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.paginacao a {
+  border: 1px solid #444;
+  background: #fff;
+  color: #222;
+  padding: 6px 10px;
+  text-decoration: none;
+}
+
+.paginacao a.active {
+  background: #0066cc;
+  border-color: #0066cc;
+  color: #fff;
+}
+
+.image-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.image-modal.visible {
+  display: flex;
+}
+
+.image-modal-content {
+  background: #fff;
+  border: 1px solid #222;
+  padding: 12px;
+  max-width: min(720px, 92vw);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 140px;
+  gap: 8px;
 }
 
-
-
-.data-compra {
-  font-size: 12px;
-  color: #666;
+.image-modal-content button {
+  align-self: flex-end;
+  border: 1px solid #444;
+  background: #fff;
+  padding: 6px 10px;
+  cursor: pointer;
 }
 
-@media (max-width: 700px) {
-  .pedido-card {
-	flex-direction: column;
-	align-items: flex-start;
+.image-modal-content img {
+  max-width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+}
+
+@media (max-width: 800px) {
+  #track_orders {
+    width: auto;
+    overflow-x: auto;
   }
-  .acoes {
-	flex-direction: row;
-	width: 100%;
-	justify-content: flex-start;
+
+  .master-table {
+    min-width: 820px;
   }
 }
