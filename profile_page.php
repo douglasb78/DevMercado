@@ -58,8 +58,11 @@ ob_start();
         </div>
 
         <div class="form-group checkbox">
-                <input type="checkbox" id="is_supplier" name="is_supplier" <?= $usuario->isSupplier ? 'checked' : '' ?>>
-                <label for="is_supplier">Quero vender produtos no site</label>
+            <?php if ($usuario->isSupplier): ?>
+                <input type="hidden" name="is_supplier" value="1">
+            <?php endif; ?>
+            <input type="checkbox" id="is_supplier" name="is_supplier" <?= $usuario->isSupplier ? 'checked disabled' : '' ?>>
+            <label for="is_supplier">Quero vender produtos no site</label>
         </div>
 
         <div class="form-group">

@@ -112,6 +112,10 @@ class AuthController {
             exit;
         }
 
+        // Não permitir que a opção de fornecedor seja removida uma vez ativada.
+        // Mesmo que a requisição tente desmarcar, preservamos o valor verdadeiro.
+        $isSupplier = $usuarioAtual->isSupplier || $isSupplier;
+
         if ($email !== $usuarioAtual->email && $this->dao->emailJaExiste($email)) {
             $_SESSION['erro_perfil'] = 'Este e-mail já está cadastrado.';
             header('Location: profile_page.php');

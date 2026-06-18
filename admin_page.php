@@ -14,10 +14,15 @@ if (empty($_SESSION['usuario_admin'])) {
     exit;
 }
 
-$aba = $_GET['aba'] ?? 'clientes';
-$abasPermitidas = ['clientes', 'fornecedores', 'produtos', 'pedidos'];
+$aba = $_GET['aba'] ?? 'usuarios';
+// Map legacy tab names to the unified 'usuarios' tab
+$map = ['clientes' => 'usuarios', 'fornecedores' => 'usuarios'];
+if (isset($map[$aba])) {
+  $aba = $map[$aba];
+}
+$abasPermitidas = ['usuarios', 'produtos', 'pedidos'];
 if (!in_array($aba, $abasPermitidas, true)) {
-    $aba = 'clientes';
+  $aba = 'usuarios';
 }
 
 $pagina = max(1, (int) ($_GET['pagina'] ?? 1));
@@ -31,12 +36,37 @@ $total = 0;
 $pedidoDao = new PedidoDAO();
 $pedidos = [];
 
-if ($aba === 'clientes') {
-    $clientes = $usuarioDao->listarPorTipo(false, $porPagina, $offset);
-    $total = $usuarioDao->contarPorTipo(false);
-} elseif ($aba === 'fornecedores') {
-    $fornecedores = $usuarioDao->listarPorTipo(true, $porPagina, $offset);
-    $total = $usuarioDao->contarPorTipo(true);
+// Para admin alterar se é vendedor ou não:
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_supplier') {
+  if (empty($_SESSION['usuario_admin'])) {
+    http_response_code(403);
+    echo 'Acesso negado.';
+    exit;
+  }
+
+  $targetId = (int) ($_POST['id'] ?? 0);
+  $desired = isset($_POST['is_supplier']);
+  $target = $usuarioDao->buscarPorId($targetId);
+  if ($target) {
+    $usuarioDao->atualizar(
+      $targetId,
+      $target->email,
+      null,
+      $target->telefone ?? null,
+      $target->cartaocredito ?? null,
+      $target->endereco ?? null,
+      $target->nome ?? null,
+      $desired
+    );
+  }
+
+  header('Location: ' . admin_link('usuarios', $pagina));
+  exit;
+}
+
+if ($aba === 'usuarios') {
+  $usuarios = $usuarioDao->listarTodos($porPagina, $offset);
+  $total = $usuarioDao->contarTodos();
 } elseif ($aba === 'produtos') {
   $produtos = $produtoDao->listarTodos($porPagina, $offset);
   $total = $produtoDao->contar();
@@ -65,13 +95,11 @@ ob_start();
   </div>
 
   <div class="admin-tabs">
-    <a class="<?= $aba === 'clientes' ? 'active' : '' ?>" href="<?= admin_link('clientes', 1) ?>">Clientes</a>
-    <a class="<?= $aba === 'fornecedores' ? 'active' : '' ?>" href="<?= admin_link('fornecedores', 1) ?>">Fornecedores</a>
+    <a class="<?= $aba === 'usuarios' ? 'active' : '' ?>" href="<?= admin_link('usuarios', 1) ?>">Usuários</a>
     <a class="<?= $aba === 'produtos' ? 'active' : '' ?>" href="<?= admin_link('produtos', 1) ?>">Produtos</a>
     <a class="<?= $aba === 'pedidos' ? 'active' : '' ?>" href="<?= admin_link('pedidos', 1) ?>">Pedidos</a>
   </div>
-  <?php if ($aba === 'clientes' || $aba === 'fornecedores'): ?>
-    <?php $usuarios = $aba === 'clientes' ? $clientes : $fornecedores; ?>
+  <?php if ($aba === 'usuarios'): ?>
     <table class="admin-master-table admin-users-table">
       <thead>
         <tr>
@@ -80,6 +108,7 @@ ob_start();
           <th>E-mail</th>
           <th>Telefone</th>
           <th>Endereço</th>
+          <th>É fornecedor</th>
           <th>Criado em</th>
         </tr>
       </thead>
@@ -91,6 +120,13 @@ ob_start();
             <td data-label="E-mail"><?= htmlspecialchars($usuario->email) ?></td>
             <td data-label="Telefone"><?= htmlspecialchars($usuario->telefone) ?></td>
             <td data-label="Endereco"><?= htmlspecialchars($usuario->endereco) ?></td>
+            <td data-label="É fornecedor">
+              <form method="POST" action="/admin_page.php">
+                <input type="hidden" name="action" value="toggle_supplier">
+                <input type="hidden" name="id" value="<?= $usuario->id ?>">
+                <input type="checkbox" name="is_supplier" <?= $usuario->isSupplier ? 'checked' : '' ?> onchange="this.form.submit()">
+              </form>
+            </td>
             <td data-label="Criado em"><?= htmlspecialchars($usuario->criadoEm) ?></td>
           </tr>
         <?php endforeach; ?>

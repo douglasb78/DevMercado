@@ -157,6 +157,23 @@ class UsuarioDAO {
         return array_map(fn($r) => new Usuario($r), $stmt->fetchAll());
     }
 
+        public function listarTodos(int $limite, int $offset): array {
+            $stmt = $this->pdo->prepare(
+                'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
+                   FROM usuarios
+                  ORDER BY nome ASC
+                  LIMIT :limite OFFSET :offset'
+            );
+            $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            return array_map(fn($r) => new Usuario($r), $stmt->fetchAll());
+        }
+
+        public function contarTodos(): int {
+            $stmt = $this->pdo->query('SELECT COUNT(*) FROM usuarios');
+            return (int) $stmt->fetchColumn();
+        }
     public function contarPorTipo(bool $fornecedores): int {
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM usuarios WHERE is_supplier = :is_supplier');
         $stmt->bindValue(':is_supplier', $fornecedores, PDO::PARAM_BOOL);

@@ -1,5 +1,15 @@
 <!-- Navbar !-->
 <link rel="stylesheet" href="/template/css/navbar_widget.css">
+<?php
+if (!empty($_SESSION['usuario_id'])) {
+    require_once __DIR__ . '/../dao/UsuarioDAO.php';
+    $usuarioDao = new UsuarioDAO();
+    $freshUser = $usuarioDao->buscarPorId((int) $_SESSION['usuario_id']);
+    $isSupplier = $freshUser?->isSupplier ?? (!empty($_SESSION['usuario_supplier']));
+} else {
+    $isSupplier = false;
+}
+?>
 <nav class="navbar">
     <a href="index.php" style="text-decoration:none;"><h1>DevMercado</h1></a>
 
@@ -22,7 +32,7 @@
                 <a href="admin_page.php">Admin</a>
             <?php endif; ?>
 
-            <?php if (!empty($_SESSION['usuario_supplier'])): ?>
+            <?php if (!empty($isSupplier)): ?>
                 <a href="manage_page.php" id="my_store">Minha Loja</a>
             <?php endif; ?>
         <?php endif; ?>
