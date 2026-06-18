@@ -63,10 +63,16 @@
 }
 @media (max-width: 700px) {
   .thumb-carousel {
-    max-width: 160px;
+    max-width: 100%;
   }
   .thumb-carousel .tc-slide {
     width: 42px;
     height: 42px;
+  }
+  .thumb-carousel .tc-prev {
+    left: 0;
+  }
+  .thumb-carousel .tc-next {
+    right: 0;
   }
 }

@@ -123,9 +123,12 @@ class PedidoDAO {
         $stmt = $this->pdo->prepare(
             'SELECT ip.*,
                     p.nome     AS produto_nome,
-                    p.foto_url AS produto_foto
+                    p.foto_url AS produto_foto,
+                    p.fornecedor_id AS fornecedor_id,
+                    u.nome AS fornecedor_nome
                FROM itens_pedido ip
                JOIN produtos p ON p.id = ip.produto_id
+               JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE ip.pedido_id = :pid'
         );
         $stmt->execute([':pid' => $pedidoId]);
@@ -137,9 +140,12 @@ class PedidoDAO {
         $stmt = $this->pdo->prepare(
             'SELECT ip.*,
                     p.nome     AS produto_nome,
-                    p.foto_url AS produto_foto
+                    p.foto_url AS produto_foto,
+                    p.fornecedor_id AS fornecedor_id,
+                    u.nome AS fornecedor_nome
                FROM itens_pedido ip
                JOIN produtos p ON p.id = ip.produto_id
+               JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE ip.pedido_id = :pid AND p.fornecedor_id = :fid'
         );
         $stmt->execute([':pid' => $pedidoId, ':fid' => $fornecedorId]);

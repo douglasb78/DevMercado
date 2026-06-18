@@ -71,7 +71,7 @@
   font-weight: 600;
 }
 
-.admin-master-row {
+.admin-expand-row {
   cursor: pointer;
 }
 
@@ -98,18 +98,75 @@
 
 .admin-detail-row > td {
   background: #fbfbfb;
+  overflow: visible;
 }
 
-.detail-grid {
+.pedido-numero {
+  color: #222;
+}
+
+.pedido-data {
+  color: #666;
+  font-size: 0.76rem;
+  margin-top: 2px;
+}
+
+.pedido-itens-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pedido-item-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 6px 12px;
+  grid-template-columns: 80px minmax(0, 1fr) 130px;
+  align-items: start;
+  gap: 6px;
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 5px;
+  font-size: 0.75rem;
+  line-height: 1.16;
 }
 
-.admin-detail-row p {
-  margin-top: 8px;
-  color: #444;
-  line-height: 1.35;
+.pedido-item-info {
+  display: grid;
+  align-items: start;
+  gap: 3px 7px;
+  min-width: 0;
+}
+
+.pedido-item-info span,
+.pedido-item-info a,
+.pedido-produto-link {
+  color: #222;
+  text-decoration: none;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.pedido-item-info a:hover,
+.pedido-produto-link:hover {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.pedido-item-nome {
+  font-weight: 600;
+}
+
+.pedido-produto-link {
+  align-self: center;
+  border: 1px solid #444;
+  background: #fff;
+  padding: 4px 6px;
+  text-align: center;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .thumb-button {
@@ -125,6 +182,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.thumb-button.pedido-item-foto {
+  width: 76px;
+  height: 76px;
 }
 
 #admin-page .paginacao {
@@ -172,11 +234,159 @@
 
 @media (max-width: 800px) {
   #admin-page {
-    width: auto;
-    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border-left: 0;
+    border-right: 0;
+    overflow-x: hidden;
+  }
+
+  .admin-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #admin-page .admin-tabs {
+    gap: 4px;
+  }
+
+  #admin-page .admin-tabs a,
+  #admin-page .paginacao a {
+    padding: 6px 8px;
+    font-size: 0.8rem;
   }
 
   .admin-master-table {
-    min-width: 880px;
+    display: block;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: separate;
+    background: transparent;
+  }
+
+  .admin-master-table thead {
+    display: none;
+  }
+
+  .admin-master-table tbody,
+  .admin-master-table tr,
+  .admin-master-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-master-table tr.admin-master-row {
+    margin-bottom: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+  }
+
+  .admin-master-table th,
+  .admin-master-table td {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .admin-master-table tr.admin-master-row > td {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    border: 0;
+    border-bottom: 1px solid #eee;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-master-table tr.admin-master-row > td:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-master-table tr.admin-master-row > td::before {
+    content: attr(data-label);
+    color: #666;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .admin-orders-table tr.admin-master-row > td:nth-child(2)::before {
+    content: "Comprador";
+  }
+
+  .admin-orders-table tr.admin-master-row > td:nth-child(3)::before {
+    content: "Fornecedores";
+  }
+
+  .admin-orders-table tr.admin-master-row > td:nth-child(5)::before {
+    content: "Produtos";
+  }
+
+  .admin-orders-table tr.admin-master-row > td:nth-child(6)::before {
+    content: "Status";
+  }
+
+  .admin-orders-table tr.admin-master-row > td:nth-child(7)::before {
+    content: "Estimativa";
+  }
+
+  .admin-orders-table tr.admin-master-row > td:nth-child(8)::before {
+    content: "Total";
+  }
+
+  .td-fotos,
+  .admin-orders-table tr.admin-master-row > td[data-label="Fotos"] {
+    overflow: visible;
+  }
+
+  .thumb-carousel {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .admin-detail-row {
+    display: none;
+  }
+
+  .admin-detail-row.visible {
+    display: block;
+  }
+
+  .admin-detail-row > td {
+    display: block;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-top: 0;
+    padding: 6px;
+  }
+
+  .admin-detail-row > td::before {
+    display: none;
+  }
+
+  .pedido-item-row {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .pedido-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pedido-produto-link {
+    grid-column: 1 / -1;
+  }
+
+  .thumb-button.pedido-item-foto {
+    width: 72px;
+    height: 72px;
   }
 }

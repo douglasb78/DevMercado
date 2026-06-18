@@ -10,6 +10,8 @@ class ItemPedido {
 
     public string $produtoNome;
     public string $produtoFoto;
+    public int    $fornecedorId;
+    public string $fornecedorNome;
 
     public function __construct(array $dados) {
         $this->id          = (int)   $dados['id'];
@@ -20,6 +22,8 @@ class ItemPedido {
         $this->subtotal    = (float) ($dados['subtotal'] ?? $this->quantidade * $this->precoUnit);
         $this->produtoNome =         $dados['produto_nome'] ?? '';
         $this->produtoFoto =         $dados['produto_foto'] ?? '';
+        $this->fornecedorId = (int)  ($dados['fornecedor_id'] ?? 0);
+        $this->fornecedorNome =      $dados['fornecedor_nome'] ?? '';
     }
 
     public function subtotalFormatado(): string {

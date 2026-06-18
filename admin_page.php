@@ -72,7 +72,7 @@ ob_start();
   </div>
   <?php if ($aba === 'clientes' || $aba === 'fornecedores'): ?>
     <?php $usuarios = $aba === 'clientes' ? $clientes : $fornecedores; ?>
-    <table class="admin-master-table">
+    <table class="admin-master-table admin-users-table">
       <thead>
         <tr>
           <th>ID</th>
@@ -81,35 +81,24 @@ ob_start();
           <th>Telefone</th>
           <th>Endereço</th>
           <th>Criado em</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($usuarios as $usuario): ?>
-          <tr class="admin-master-row" onclick="toggleDetalhe('usuario-<?= $usuario->id ?>')">
-            <td><?= $usuario->id ?></td>
-            <td><?= htmlspecialchars($usuario->nome) ?></td>
-            <td><?= htmlspecialchars($usuario->email) ?></td>
-            <td><?= htmlspecialchars($usuario->telefone) ?></td>
-            <td><?= htmlspecialchars($usuario->endereco) ?></td>
-            <td><?= htmlspecialchars($usuario->criadoEm) ?></td>
-            <td><button type="button">Detalhes</button></td>
-          </tr>
-          <tr id="usuario-<?= $usuario->id ?>" class="admin-detail-row">
-            <td colspan="7">
-              <div class="detail-grid">
-                <span><strong>Tipo:</strong> <?= $usuario->isSupplier ? 'Fornecedor' : 'Cliente' ?></span>
-                <span><strong>Admin:</strong> <?= $usuario->isAdmin ? 'Sim' : 'Não' ?></span>
-                <span><strong>Cartão:</strong> <?= htmlspecialchars($usuario->cartaocredito) ?></span>
-              </div>
-            </td>
+          <tr class="admin-master-row">
+            <td data-label="ID"><?= $usuario->id ?></td>
+            <td data-label="Nome"><?= htmlspecialchars($usuario->nome) ?></td>
+            <td data-label="E-mail"><?= htmlspecialchars($usuario->email) ?></td>
+            <td data-label="Telefone"><?= htmlspecialchars($usuario->telefone) ?></td>
+            <td data-label="Endereco"><?= htmlspecialchars($usuario->endereco) ?></td>
+            <td data-label="Criado em"><?= htmlspecialchars($usuario->criadoEm) ?></td>
           </tr>
         <?php endforeach; ?>
       </tbody>
     </table>
 
   <?php elseif ($aba === 'produtos'): ?>
-    <table class="admin-master-table">
+    <table class="admin-master-table admin-products-table">
       <thead>
         <tr>
           <th>ID</th>
@@ -119,42 +108,30 @@ ob_start();
           <th>Categoria</th>
           <th>Preço</th>
           <th>Estoque</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($produtos as $produto): ?>
           <?php $fotoRaw = $produto->fotoUrl ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
-          <tr class="admin-master-row" onclick="toggleDetalhe('produto-<?= $produto->id ?>')">
-            <td><?= $produto->id ?></td>
-            <td onclick="event.stopPropagation()" class="td-fotos">
+          <tr class="admin-master-row">
+            <td data-label="ID"><?= $produto->id ?></td>
+            <td data-label="Foto" onclick="event.stopPropagation()" class="td-fotos">
               <button type="button" class="thumb-button" onclick='abrirImagem(<?= json_encode($fotoRaw) ?>, <?= json_encode($produto->nome) ?>)'>
                 <img src="<?= $foto ?>" alt="<?= htmlspecialchars($produto->nome) ?>">
               </button>
             </td>
-            <td><?= htmlspecialchars($produto->nome) ?></td>
-            <td><?= htmlspecialchars($produto->fornecedorNome) ?></td>
-            <td><?= htmlspecialchars($produto->categoria) ?></td>
-            <td><?= $produto->precoFormatado() ?></td>
-            <td><?= $produto->estoque ?></td>
-            <td><button type="button">Detalhes</button></td>
-          </tr>
-          <tr id="produto-<?= $produto->id ?>" class="admin-detail-row">
-            <td colspan="8">
-              <div class="detail-grid">
-                <span><strong>Fornecedor ID:</strong> <?= $produto->fornecedorId ?></span>
-                <span><strong>Criado em:</strong> <?= htmlspecialchars($produto->criadoEm) ?></span>
-                <span><strong>Foto URL:</strong> <?= htmlspecialchars($produto->fotoUrl) ?></span>
-              </div>
-              <p><?= htmlspecialchars($produto->descricao ?: 'Sem descrição.') ?></p>
-            </td>
+            <td data-label="Produto"><?= htmlspecialchars($produto->nome) ?></td>
+            <td data-label="Fornecedor"><?= htmlspecialchars($produto->fornecedorNome) ?></td>
+            <td data-label="Categoria"><?= htmlspecialchars($produto->categoria) ?></td>
+            <td data-label="Preco"><?= $produto->precoFormatado() ?></td>
+            <td data-label="Estoque"><?= $produto->estoque ?></td>
           </tr>
         <?php endforeach; ?>
       </tbody>
     </table>
 
   <?php elseif ($aba === 'pedidos'): ?>
-    <table class="admin-master-table">
+    <table class="admin-master-table admin-orders-table">
       <thead>
         <tr>
           <th>Pedido</th>
@@ -165,19 +142,18 @@ ob_start();
           <th>Status</th>
           <th>Estimativa</th>
           <th>Total</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($pedidos as $pedido): ?>
-          <tr class="admin-master-row" onclick="toggleDetalhe('pedido-<?= $pedido->id ?>')">
-            <td>
-              <strong>#<?= $pedido->id ?></strong>
-              <small><?= $pedido->dataCompraFormatada() ?></small>
+          <tr class="admin-master-row admin-expand-row" onclick="toggleDetalhe('pedido-<?= $pedido->id ?>')">
+            <td data-label="Pedido">
+              <div class="pedido-numero">#<?= $pedido->id ?></div>
+              <div class="pedido-data"><?= $pedido->dataCompraFormatada() ?></div>
             </td>
             <td><?= htmlspecialchars($pedido->compradorNome ?: '—') ?></td>
             <td><?= htmlspecialchars($pedido->fornecedores ?: '—') ?></td>
-            <td>
+            <td data-label="Fotos">
               <?php
                 $items = [];
                 foreach ($pedido->itens as $it) {
@@ -190,14 +166,30 @@ ob_start();
             <td><?= htmlspecialchars($pedido->statusLabel()) ?></td>
             <td><?= $pedido->dataEstimadaFormatada() ?></td>
             <td><?= $pedido->totalFormatado() ?></td>
-            <td><button type="button">Detalhes</button></td>
           </tr>
           <tr id="pedido-<?= $pedido->id ?>" class="admin-detail-row">
-            <td colspan="9">
-              <div class="detail-grid">
-                <span><strong>Comprador:</strong> <?= htmlspecialchars($pedido->compradorNome) ?></span>
-                <span><strong>Fornecedores:</strong> <?= htmlspecialchars($pedido->fornecedores) ?></span>
-                <span><strong>Criado em:</strong> <?= htmlspecialchars($pedido->criadoEm) ?></span>
+            <td colspan="8">
+              <div class="pedido-itens-detalhe">
+                <?php foreach ($pedido->itens as $item): ?>
+                  <?php
+                    $fotoItemRaw = $item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod';
+                    $precoItem = 'R$ ' . number_format($item->precoUnit, 2, ',', '.');
+                    $produtoUrl = '/product_page.php?id=' . $item->produtoId;
+                    $fornecedorUrl = '/view_store_page.php?id=' . $item->fornecedorId;
+                  ?>
+                  <div class="pedido-item-row">
+                    <button type="button" class="thumb-button pedido-item-foto" onclick='abrirImagem(<?= json_encode($fotoItemRaw) ?>, <?= json_encode($item->produtoNome) ?>)'>
+                      <img src="<?= htmlspecialchars($fotoItemRaw) ?>" alt="<?= htmlspecialchars($item->produtoNome) ?>">
+                    </button>
+                    <div class="pedido-item-info">
+                      <a class="pedido-item-nome" href="<?= $produtoUrl ?>"><?= htmlspecialchars($item->produtoNome) ?></a>
+                      <span>Quantidade: <?= $item->quantidade ?></span>
+                      <span>Preço: <?= $precoItem ?></span>
+                      <a href="<?= $fornecedorUrl ?>">Fornecedor: <?= htmlspecialchars($item->fornecedorNome ?: 'Fornecedor') ?></a>
+                    </div>
+                    <a class="pedido-produto-link" href="<?= $produtoUrl ?>">Ver produto</a>
+                  </div>
+                <?php endforeach; ?>
               </div>
             </td>
           </tr>
@@ -219,7 +211,7 @@ ob_start();
   <div class="image-modal-content" onclick="event.stopPropagation()">
     <button type="button" onclick="fecharImagem()">Fechar</button>
     <img id="modal-img" src="" alt="">
-    <strong id="modal-title"></strong>
+    <span id="modal-title"></span>
   </div>
 </div>
 
