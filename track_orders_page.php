@@ -55,12 +55,12 @@ ob_start();
       <tbody>
         <?php foreach ($pedidos as $pedido): ?>
           <tr class="master-row" onclick="toggleDetalhe('pedido-<?= $pedido->id ?>')">
-            <td>
+            <td data-label="Pedido">
               <strong>#<?= $pedido->id ?></strong>
               <small><?= $pedido->dataCompraFormatada() ?></small>
             </td>
-            <td><?= pedidoProdutosResumo($pedido->itens) ?></td>
-            <td>
+            <td data-label="Produtos"><?= pedidoProdutosResumo($pedido->itens) ?></td>
+            <td data-label="Fotos">
               <?php
                 $items = [];
                 foreach ($pedido->itens as $item) {
@@ -73,10 +73,10 @@ ob_start();
                 include __DIR__ . '/template/thumb_carroussel.php';
               ?>
             </td>
-            <td><span class="status <?= htmlspecialchars($pedido->status) ?>"><?= $pedido->statusLabel() ?></span></td>
-            <td><?= $pedido->dataEstimadaFormatada() ?></td>
-            <td><?= $pedido->totalFormatado() ?></td>
-            <td><button type="button" class="detail-toggle">Detalhes</button></td>
+            <td data-label="Status"><span class="status <?= htmlspecialchars($pedido->status) ?>"><?= $pedido->statusLabel() ?></span></td>
+            <td data-label="Estimativa"><?= $pedido->dataEstimadaFormatada() ?></td>
+            <td data-label="Total"><?= $pedido->totalFormatado() ?></td>
+            <td data-label="Ação"><button type="button" class="detail-toggle">Detalhes</button></td>
           </tr>
           <tr id="pedido-<?= $pedido->id ?>" class="detail-row">
             <td colspan="7">

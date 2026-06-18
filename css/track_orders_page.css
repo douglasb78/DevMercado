@@ -212,11 +212,79 @@
 
 @media (max-width: 800px) {
   #track_orders {
-    width: auto;
-    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border-left: 0;
+    border-right: 0;
+    margin: 0 auto;
+    overflow-x: hidden;
   }
 
-  .master-table {
-    min-width: 820px;
+  .compact-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
+
+  .compact-header h2 { font-size: 1rem; }
+
+  .master-table {
+    display: block;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: separate;
+    background: transparent;
+    min-width: 0;
+  }
+
+  .master-table thead { display: none; }
+
+  .master-table tbody,
+  .master-table tr,
+  .master-table td,
+  .master-table th {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .master-table tr.master-row {
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+  }
+
+  .master-table tr.master-row > td {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    border: 0;
+    padding: 8px;
+  }
+
+  .master-table tr.master-row > td::before {
+    content: attr(data-label);
+    color: #666;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .thumb-carousel { max-width: 100%; min-width: 0; }
+
+  .thumb-button { width: 56px; height: 56px; }
+
+  .detail-product img { width: 48px; height: 48px; }
+
+  .status { white-space: normal; min-width: 0; }
+
+  .detail-row { display: none !important; }
+
+  .detail-row.visible { display: block !important; }
+
+  .detail-row > td { display: block !important; width: 100% !important; padding: 8px !important; border-top: 0 !important; }
+
+  .image-modal { z-index: 11000; }
 }

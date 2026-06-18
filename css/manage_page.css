@@ -518,9 +518,198 @@
   object-fit: contain;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
   #manage_store {
-    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border-left: 0;
+    border-right: 0;
     margin: 0 auto;
+    overflow-x: hidden;
   }
+
+  .store-header {
+    padding: 10px;
+  }
+
+  .store-header h1 {
+    font-size: 1.15rem;
+  }
+
+  .store-menu {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .store-menu-btn {
+    padding: 12px 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .store-menu-btn .btn-icon {
+    font-size: 1.6rem;
+    flex: 0 0 auto;
+  }
+
+  .store-menu-btn .btn-titulo {
+    font-size: 1rem;
+  }
+
+  .store-menu-btn .btn-desc {
+    font-size: 0.9rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .store-panel {
+    padding: 12px;
+  }
+
+  .store-panel .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .store-panel .form-row > div {
+    min-width: 0;
+  }
+
+  .btn-salvar {
+    align-self: stretch;
+    width: 100%;
+    text-align: center;
+  }
+
+  .pedido-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .pedido-card .produto-img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .pedido-card .info-principal {
+    min-width: 0;
+  }
+
+  .pedido-card .acoes-entrega {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .status {
+    white-space: normal;
+    min-width: 0;
+  }
+
+  .estoque-table {
+    display: block;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: separate;
+    background: transparent;
+  }
+
+  .estoque-table thead {
+    display: none;
+  }
+
+  .estoque-table tbody,
+  .estoque-table tr,
+  .estoque-table td,
+  .estoque-table th {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .estoque-table tr {
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 6px;
+  }
+
+  .estoque-table td {
+    padding: 8px;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .compact-master-table th,
+  .compact-master-table td,
+  .compact-detail-table th,
+  .compact-detail-table td {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .compact-master-table {
+    display: block;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: separate;
+    background: transparent;
+  }
+
+  .compact-master-table thead { display: none; }
+
+  .compact-master-table tbody,
+  .compact-master-table tr,
+  .compact-master-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .compact-master-table tr.compact-master-row {
+    margin-bottom: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+  }
+
+  .compact-master-table tr.compact-master-row > td {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    border: 0;
+    border-bottom: 1px solid #eee;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .compact-master-table tr.compact-master-row > td::before {
+    content: attr(data-label);
+    color: #666;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .thumb-carousel { max-width: 100%; min-width: 0; }
+
+  .thumb-button { width: 56px; height: 56px; }
+
+  .detail-product img { width: 48px; height: 48px; }
+
+  .produto-cadastrado-card img { height: 120px; }
+
+  .image-modal { z-index: 11000; }
+  
+  /* Force detail rows hidden on small screens unless explicitly opened */
+  .compact-detail-row { display: none !important; }
+  .compact-detail-row.visible { display: block !important; }
+  .compact-detail-row > td { display: block !important; width: 100% !important; border: 1px solid #ccc !important; border-top: 0 !important; padding: 6px !important; }
 }

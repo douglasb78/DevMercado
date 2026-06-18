@@ -145,11 +145,11 @@ ob_start();
               if (count($nomes) > 2) $produtosResumo .= ' +' . (count($nomes) - 2);
             ?>
             <tr class="compact-master-row" onclick="toggleDetalhe('entrega-<?= $pedido->id ?>')">
-              <td>#<?= $pedido->id ?><br/><?= $pedido->dataCompraFormatada() ?></td>
-              <td><?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?></td>
-              <td><?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?></td>
-              <td><?= htmlspecialchars($produtosResumo) ?></td>
-              <td class="td-fotos">
+              <td data-label="Pedido">#<?= $pedido->id ?><br/><?= $pedido->dataCompraFormatada() ?></td>
+              <td data-label="Cliente"><?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?></td>
+              <td data-label="Endereço"><?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?></td>
+              <td data-label="Produtos"><?= htmlspecialchars($produtosResumo) ?></td>
+              <td data-label="Fotos" class="td-fotos">
                 <?php
                   $items = [];
                   foreach ($pedido->itens as $item) {
@@ -162,7 +162,7 @@ ob_start();
                   include __DIR__ . '/template/thumb_carroussel.php';
                 ?>
               </td>
-              <td onclick="event.stopPropagation()">
+              <td data-label="Status" onclick="event.stopPropagation()">
                 <select id="status-<?= $pedido->id ?>">
                   <?php foreach (['preparacao'=>'Em preparação','transito'=>'Em trânsito','saiu'=>'Saiu para entrega','entregue'=>'Entregue'] as $val => $label): ?>
                     <option value="<?= $val ?>" <?= $pedido->status === $val ? 'selected' : '' ?>>
@@ -171,11 +171,11 @@ ob_start();
                   <?php endforeach; ?>
                 </select>
               </td>
-              <td onclick="event.stopPropagation()">
+              <td data-label="Data" onclick="event.stopPropagation()">
                 <input type="date" id="data-<?= $pedido->id ?>" value="<?= htmlspecialchars($pedido->dataEstimada) ?>">
               </td>
-              <td><?= $pedido->totalFormatado() ?></td>
-              <td onclick="event.stopPropagation()">
+              <td data-label="Total"><?= $pedido->totalFormatado() ?></td>
+              <td data-label="Ação" onclick="event.stopPropagation()">
                 <button class="btn-salvar btn-compacto" type="button" onclick="salvarStatus(<?= $pedido->id ?>)">Salvar</button>
               </td>
             </tr>
@@ -243,11 +243,11 @@ ob_start();
         <tbody>
           <?php foreach ($produtos as $p): ?>
             <tr>
-              <td><?= htmlspecialchars($p->nome) ?></td>
-              <td><?= htmlspecialchars($p->categoria) ?></td>
-              <td id="est-atual-<?= $p->id ?>"><?= $p->estoque ?></td>
-              <td><input type="number" id="est-novo-<?= $p->id ?>" value="<?= $p->estoque ?>" min="0"></td>
-              <td>
+              <td data-label="Produto"><?= htmlspecialchars($p->nome) ?></td>
+              <td data-label="Categoria"><?= htmlspecialchars($p->categoria) ?></td>
+              <td data-label="Estoque atual" id="est-atual-<?= $p->id ?>"><?= $p->estoque ?></td>
+              <td data-label="Novo estoque"><input type="number" id="est-novo-<?= $p->id ?>" value="<?= $p->estoque ?>" min="0"></td>
+              <td data-label="Ação">
                 <button class="btn-salvar btn-compacto" type="button" onclick="salvarEstoque(<?= $p->id ?>)">Salvar</button>
               </td>
             </tr>
@@ -279,17 +279,17 @@ ob_start();
           <?php foreach ($produtos as $p): ?>
             <?php $fotoRaw = $p->fotoUrl ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
             <tr id="card-<?= $p->id ?>">
-              <td><?= $p->id ?></td>
-              <td>
+              <td data-label="ID"><?= $p->id ?></td>
+              <td data-label="Foto">
                 <button type="button" class="thumb-button" onclick='abrirImagem(<?= json_encode($fotoRaw) ?>, <?= json_encode($p->nome) ?>)'>
                   <img src="<?= $foto ?>" alt="<?= htmlspecialchars($p->nome) ?>">
                 </button>
               </td>
-              <td><?= htmlspecialchars($p->nome) ?></td>
-              <td><?= htmlspecialchars($p->categoria) ?></td>
-              <td><?= $p->precoFormatado() ?></td>
-              <td><?= $p->estoque ?></td>
-              <td>
+              <td data-label="Nome"><?= htmlspecialchars($p->nome) ?></td>
+              <td data-label="Categoria"><?= htmlspecialchars($p->categoria) ?></td>
+              <td data-label="Preço"><?= $p->precoFormatado() ?></td>
+              <td data-label="Estoque"><?= $p->estoque ?></td>
+              <td data-label="Ações">
                 <button type="button" onclick="editarProduto(<?= $p->id ?>, '<?= htmlspecialchars(addslashes($p->nome)) ?>', '<?= htmlspecialchars(addslashes($p->descricao)) ?>', '<?= htmlspecialchars(addslashes($p->fotoUrl)) ?>')" class="btn-editar">Editar</button>
                 <button type="button" onclick="confirmarExclusao(<?= $p->id ?>, '<?= htmlspecialchars(addslashes($p->nome)) ?>')" class="btn-excluir">Excluir</button>
               </td>

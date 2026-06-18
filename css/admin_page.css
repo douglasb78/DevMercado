@@ -350,19 +350,19 @@
   }
 
   .admin-detail-row {
-    display: none;
+    display: none !important;
   }
 
   .admin-detail-row.visible {
-    display: block;
+    display: block !important;
   }
 
   .admin-detail-row > td {
-    display: block;
-    width: 100%;
-    border: 1px solid #ccc;
-    border-top: 0;
-    padding: 6px;
+    display: block !important;
+    width: 100% !important;
+    border: 1px solid #ccc !important;
+    border-top: 0 !important;
+    padding: 6px !important;
   }
 
   .admin-detail-row > td::before {
