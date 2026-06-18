@@ -17,18 +17,18 @@ class CarrinhoController {
         $quantidade = (int) ($_POST['quantidade'] ?? 1);
 
         if (!$produtoId || $quantidade < 1) {
-            $this->erroJson('Dados invalidos.');
+            $this->erroJson('Dados inválidos.');
         }
 
         $produto = $this->produtoDao->buscarPorId($produtoId);
         if (!$produto || $produto->estoque <= 0) {
-            $this->erroJson('Produto indisponivel.');
+            $this->erroJson('Produto indisponível.');
         }
 
         $carrinho = $this->lerCookie();
         $novaQuantidade = ($carrinho[$produtoId] ?? 0) + $quantidade;
         if ($novaQuantidade > $produto->estoque) {
-            $this->erroJson("Estoque insuficiente. Disponivel: {$produto->estoque}.");
+            $this->erroJson("Estoque insuficiente. Disponível: {$produto->estoque}.");
         }
 
         $carrinho[$produtoId] = $novaQuantidade;
@@ -50,7 +50,7 @@ class CarrinhoController {
 
         $produto = $this->produtoDao->buscarPorId($produtoId);
         if (!$produto) {
-            $this->erroJson('Produto nao encontrado.');
+            $this->erroJson('Produto não encontrado.');
         }
         if ($quantidade > $produto->estoque) {
             $this->erroJson("Estoque insuficiente. Disponivel: {$produto->estoque}.");

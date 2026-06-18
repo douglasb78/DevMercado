@@ -23,7 +23,7 @@ class PedidoController {
         $itens = $carrinhoController->itens();
 
         if (empty($itens)) {
-            $this->erroJson('Seu carrinho esta vazio.');
+            $this->erroJson('Seu carrinho está vazio.');
         }
 
         try {
@@ -46,7 +46,7 @@ class PedidoController {
         $dataEstimada = $_POST['data_estimada'] ?? null;
 
         if (!in_array($status, self::STATUS_PERMITIDOS, true)) {
-            $this->erroJson('Status invalido.');
+            $this->erroJson('Status inválido.');
         }
 
         $ok = $this->pedidoDao->atualizarStatus(
@@ -57,7 +57,7 @@ class PedidoController {
         );
 
         if (!$ok) {
-            $this->erroJson('Pedido nao encontrado ou sem permissao.', 403);
+            $this->erroJson('Pedido não encontrado ou sem permissão.', 403);
         }
 
         $this->jsonSucesso(['mensagem' => 'Status atualizado!']);

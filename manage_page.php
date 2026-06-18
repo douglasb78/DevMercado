@@ -146,8 +146,8 @@ ob_start();
             ?>
             <tr class="compact-master-row" onclick="toggleDetalhe('entrega-<?= $pedido->id ?>')">
               <td data-label="Pedido">#<?= $pedido->id ?><br/><?= $pedido->dataCompraFormatada() ?></td>
-              <td data-label="Cliente"><?= htmlspecialchars($pedido->compradorNome ?: 'Nao informado') ?></td>
-              <td data-label="Endereço"><?= htmlspecialchars($pedido->compradorEndereco ?: 'Nao informado') ?></td>
+              <td data-label="Cliente"><?= htmlspecialchars($pedido->compradorNome ?: 'Não informado') ?></td>
+              <td data-label="Endereço"><?= htmlspecialchars($pedido->compradorEndereco ?: 'Não informado') ?></td>
               <td data-label="Produtos"><?= htmlspecialchars($produtosResumo) ?></td>
               <td data-label="Fotos" class="td-fotos">
                 <?php

@@ -31,10 +31,10 @@ class ProdutoController {
         $fotoUrl   = $this->salvarUpload('foto_arquivo') ?: trim($_POST['foto_url'] ?? '');
 
         if (!$nome || $preco <= 0) {
-            $this->erroJson('Nome e preco sao obrigatorios.');
+            $this->erroJson('Nome e preço são obrigatórios.');
         }
         if (!$this->categoriaValida($categoria)) {
-            $this->erroJson('Categoria invalida.');
+            $this->erroJson('Categoria inválida.');
         }
 
         $produto = $this->dao->inserir(
@@ -56,11 +56,11 @@ class ProdutoController {
         $produtoId   = (int) ($_POST['produto_id'] ?? 0);
         $novoEstoque = (int) ($_POST['novo_estoque'] ?? 0);
 
-        if (!$produtoId) $this->erroJson('ID do produto invalido.');
+        if (!$produtoId) $this->erroJson('ID do produto inválido.');
 
         $produto = $this->dao->buscarPorId($produtoId);
         if (!$produto || $produto->fornecedorId !== (int) $_SESSION['usuario_id']) {
-            $this->erroJson('Produto nao encontrado ou sem permissao.', 403);
+            $this->erroJson('Produto não encontrado ou sem permissão.', 403);
         }
 
         $this->dao->atualizarEstoque($produtoId, $novoEstoque);
@@ -75,12 +75,12 @@ class ProdutoController {
         $descricao = trim($_POST['descricao'] ?? '');
         $fotoUrl   = $this->salvarUpload('foto_arquivo') ?: trim($_POST['foto_url'] ?? '');
 
-        if (!$produtoId) $this->erroJson('ID do produto invalido.');
-        if (!$nome) $this->erroJson('Nome e obrigatorio.');
+        if (!$produtoId) $this->erroJson('ID do produto inválido.');
+        if (!$nome) $this->erroJson('Nome é obrigatório.');
 
         $produto = $this->dao->buscarPorId($produtoId);
         if (!$produto || $produto->fornecedorId !== (int) $_SESSION['usuario_id']) {
-            $this->erroJson('Produto nao encontrado ou sem permissao.', 403);
+            $this->erroJson('Produto não encontrado ou sem permissão.', 403);
         }
 
         $this->dao->atualizar($produtoId, $nome, $descricao, $produto->preco, $produto->categoria, $fotoUrl);
@@ -91,12 +91,12 @@ class ProdutoController {
         $this->requerFornecedor();
 
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
-        if (!$produtoId) $this->erroJson('ID invalido.');
+        if (!$produtoId) $this->erroJson('ID inválido.');
 
         $ok = $this->dao->excluir($produtoId, (int) $_SESSION['usuario_id']);
-        if (!$ok) $this->erroJson('Produto nao encontrado ou sem permissao.', 403);
+        if (!$ok) $this->erroJson('Produto não encontrado ou sem permissão.', 403);
 
-        $this->jsonSucesso(['mensagem' => 'Produto excluido!']);
+        $this->jsonSucesso(['mensagem' => 'Produto excluído!']);
     }
 
     private function requerFornecedor(): void {
@@ -133,7 +133,7 @@ class ProdutoController {
         ];
         $ext = $extensoes[$info[2]] ?? null;
         if (!$ext) {
-            $this->erroJson('Formato de imagem nao permitido.');
+            $this->erroJson('Formato de imagem não permitido.');
         }
 
         $pasta = dirname(__DIR__) . '/upload_media';
@@ -144,7 +144,7 @@ class ProdutoController {
         $nome = 'produto_' . date('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
         $destino = $pasta . '/' . $nome;
         if (!move_uploaded_file($tmp, $destino)) {
-            $this->erroJson('Nao foi possivel salvar a imagem.');
+            $this->erroJson('Não foi possível salvar a imagem.');
         }
 
         return '/upload_media/' . $nome;

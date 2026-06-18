@@ -35,7 +35,7 @@ ob_start();
 
   <?php if (empty($pedidos)): ?>
     <p class="empty-state">
-      Voce ainda nao fez nenhum pedido.
+      Você ainda não fez nenhum pedido.
       <br><br>
       <a href="/listings_page.php">Ver produtos</a>
     </p>

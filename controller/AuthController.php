@@ -5,6 +5,12 @@ class AuthController {
 
     private UsuarioDAO $dao;
 
+    private function isAjax(): bool {
+        $xRequested = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        return strcasecmp($xRequested, 'XMLHttpRequest') === 0 || stripos($accept, 'application/json') !== false;
+    }
+
     public function __construct() {
         $this->dao = new UsuarioDAO();
     }
@@ -27,6 +33,12 @@ class AuthController {
         (new CarrinhoController())->sincronizarUsuario($usuario->id);
         $next = trim($_POST['next'] ?? '');
         $destino = preg_match('/^[a-zA-Z0-9_\/.-]+(\?[a-zA-Z0-9_=&%-]+)?$/', $next) ? $next : 'index.php';
+        if ($this->isAjax()) {
+            http_response_code(200);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'redirect' => $destino]);
+            exit;
+        }
         header('Location: ' . $destino);
         exit;
     }
@@ -60,6 +72,12 @@ class AuthController {
 
         $this->iniciarSessao($usuario);
         (new CarrinhoController())->sincronizarUsuario($usuario->id);
+        if ($this->isAjax()) {
+            http_response_code(200);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'redirect' => 'index.php']);
+            exit;
+        }
         header('Location: index.php');
         exit;
     }
@@ -165,6 +183,12 @@ class AuthController {
     }
 
     private function erroRedirecionar(string $mensagem, string $destino): never {
+        if ($this->isAjax()) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $mensagem]);
+            exit;
+        }
         $_SESSION['auth_erro'] = $mensagem;
         header("Location: $destino");
         exit;
