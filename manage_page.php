@@ -132,7 +132,7 @@ ob_start();
             <th>Produtos</th>
             <th>Fotos</th>
             <th>Status</th>
-            <th>Data</th>
+            <th>Entrega prevista</th>
             <th>Total</th>
             <th>Ação</th>
           </tr>

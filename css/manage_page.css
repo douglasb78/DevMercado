@@ -378,7 +378,7 @@
   min-width: 110px;
   padding: 5px 6px;
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .compact-detail-row {
@@ -690,7 +690,7 @@
     align-items: start;
     border: 0;
     border-bottom: 1px solid #eee;
-    padding: 6px 8px;
+    padding: 4px;
     font-size: 0.78rem;
     overflow-wrap: anywhere;
   }
