@@ -19,6 +19,13 @@ $website_content = ob_get_clean();
 include __DIR__ . '/template/index_template.php';
 return;
 endif;
+
+$carrinhoCookie = json_decode($_COOKIE['devmercado_carrinho'] ?? '{}', true);
+$quantidadeAtualCarrinho = 0;
+if (is_array($carrinhoCookie)) {
+    $quantidadeAtualCarrinho = (int) ($carrinhoCookie[$produto->id] ?? 0);
+}
+$quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1));
 ?>
 
 <link rel="stylesheet" href="/css/product_page.css">
@@ -55,7 +62,7 @@ endif;
         <div class="quantidade-label">Quantidade:</div>
         <div class="quantidade">
           <button type="button" onclick="alterarQuantidade(-1)">–</button>
-          <span id="qtd">1</span>
+          <span id="qtd"><?= $quantidadeInicial ?></span>
           <button type="button" onclick="alterarQuantidade(1)">+</button>
         </div>
 
@@ -131,7 +138,7 @@ function adicionarCarrinho(produtoId) {
   fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `action=carrinho_adicionar&produto_id=${produtoId}&quantidade=${qtd}`
+    body: `action=carrinho_atualizar&produto_id=${produtoId}&quantidade=${qtd}`
   })
   .then(r => r.json())
   .then(data => {
@@ -145,7 +152,8 @@ function adicionarCarrinho(produtoId) {
           produtoNome: produtoNome,
           produtoPreco: produtoPreco,
           produtoFoto: produtoFoto,
-          quantidade: qtd
+          quantidade: qtd,
+          quantidadeFinal: true
         });
       }
     }
@@ -165,7 +173,7 @@ function comprarAgora(produtoId) {
   fetch('/shopping_cart_page.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `action=carrinho_adicionar&produto_id=${produtoId}&quantidade=${qtd}`
+    body: `action=carrinho_atualizar&produto_id=${produtoId}&quantidade=${qtd}`
   })
   .then(r => r.json())
   .then(data => {
@@ -178,7 +186,8 @@ function comprarAgora(produtoId) {
           produtoNome: produtoNome,
           produtoPreco: produtoPreco,
           produtoFoto: produtoFoto,
-          quantidade: qtd
+          quantidade: qtd,
+          quantidadeFinal: true
         });
       }
       window.location.href = '/shopping_cart_page.php';

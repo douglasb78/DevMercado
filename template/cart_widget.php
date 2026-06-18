@@ -119,8 +119,9 @@ $cartQty = $qtyTotal;
       addOrUpdateItem(item){
         const pid = Number(item.produtoId);
         const existing = state.items.find(i => Number(i.produtoId) === pid);
+        const itemQty = Number(item.quantidade || 0);
         if (existing){
-          existing.quantidade = Number(existing.quantidade || 0) + Number(item.quantidade || 0);
+          existing.quantidade = item.quantidadeFinal ? itemQty : Number(existing.quantidade || 0) + itemQty;
           existing.produtoPreco = Number(item.produtoPreco || existing.produtoPreco || 0);
           existing.subtotal = existing.quantidade * existing.produtoPreco;
         } else {
@@ -129,8 +130,8 @@ $cartQty = $qtyTotal;
             produtoNome: item.produtoNome || '',
             produtoPreco: Number(item.produtoPreco || 0),
             produtoFoto: item.produtoFoto || '',
-            quantidade: Number(item.quantidade || 0),
-            subtotal: Number(item.quantidade || 0) * Number(item.produtoPreco || 0)
+            quantidade: itemQty,
+            subtotal: itemQty * Number(item.produtoPreco || 0)
           });
         }
         render();
@@ -140,7 +141,7 @@ $cartQty = $qtyTotal;
         render();
       },
       showAddTotal(qtd, unitPrice){
-        extEl.textContent = `Total a adicionar: ${formatCurrency(Number(qtd) * Number(unitPrice))}`;
+        extEl.textContent = `Total selecionado: ${formatCurrency(Number(qtd) * Number(unitPrice))}`;
         extEl.style.display = 'block';
       },
       hideAddTotal(){
