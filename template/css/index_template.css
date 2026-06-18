@@ -41,6 +41,9 @@ button:hover {
 }
 
 @media (max-width: 992px) {
+	body {
+		padding-bottom: 20%;
+	}
 	#website-content {
 		padding: 12px 0;
 	}

@@ -56,8 +56,8 @@ ob_start();
         <?php foreach ($pedidos as $pedido): ?>
           <tr class="master-row" onclick="toggleDetalhe('pedido-<?= $pedido->id ?>')">
             <td data-label="Pedido">
-              <strong>#<?= $pedido->id ?></strong>
-              <small><?= $pedido->dataCompraFormatada() ?></small>
+              #<?= $pedido->id ?> - 
+              <?= $pedido->dataCompraFormatada() ?>
             </td>
             <td data-label="Produtos"><?= pedidoProdutosResumo($pedido->itens) ?></td>
             <td data-label="Fotos">
