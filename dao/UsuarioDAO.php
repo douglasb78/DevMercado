@@ -159,10 +159,10 @@ class UsuarioDAO {
 
         public function listarTodos(int $limite, int $offset): array {
             $stmt = $this->pdo->prepare(
-                'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
-                   FROM usuarios
-                  ORDER BY nome ASC
-                  LIMIT :limite OFFSET :offset'
+                     'SELECT id, nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em
+                         FROM usuarios
+                        ORDER BY id ASC
+                        LIMIT :limite OFFSET :offset'
             );
             $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);

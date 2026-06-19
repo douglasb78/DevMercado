@@ -84,8 +84,8 @@ ob_start();
                 <thead>
                   <tr>
                     <th>Produto</th>
-                    <th>Qtd</th>
-                    <th>Unitario</th>
+                    <th>Quantidade</th>
+                    <th>Unidades</th>
                     <th>Subtotal</th>
                   </tr>
                 </thead>

@@ -22,7 +22,7 @@ class CarrinhoDAO {
                JOIN produtos p ON p.id = c.produto_id
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE c.usuario_id = :uid
-              ORDER BY c.adicionado_em DESC'
+              ORDER BY p.id ASC'
         );
         $stmt->execute([':uid' => $usuarioId]);
         return array_map(fn($r) => new ItemCarrinho($r), $stmt->fetchAll());

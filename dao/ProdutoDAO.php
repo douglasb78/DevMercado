@@ -15,7 +15,7 @@ class ProdutoDAO {
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE p.is_deleted = false
-              ORDER BY p.criado_em DESC
+              ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
         $stmt->bindValue(':limite',  $limite,  PDO::PARAM_INT);
@@ -30,7 +30,7 @@ class ProdutoDAO {
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE p.is_deleted = false AND p.estoque > 0
-              ORDER BY p.criado_em DESC
+              ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
@@ -45,7 +45,7 @@ class ProdutoDAO {
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE p.categoria = :categoria AND p.is_deleted = false
-              ORDER BY p.criado_em DESC
+              ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
         $stmt->bindValue(':categoria', $categoria);
@@ -83,7 +83,7 @@ class ProdutoDAO {
                 OR p.nome ILIKE :termo 
                 OR p.descricao ILIKE :termo2)
                 AND p.is_deleted = false
-            ORDER BY p.criado_em DESC
+            ORDER BY p.id ASC
             LIMIT :limite OFFSET :offset'
         );
 
@@ -126,7 +126,7 @@ class ProdutoDAO {
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE p.fornecedor_id = :fid AND p.is_deleted = false
-              ORDER BY p.criado_em DESC'
+              ORDER BY p.id ASC'
         );
         $stmt->execute([':fid' => $fornecedorId]);
         return array_map(fn($r) => new Produto($r), $stmt->fetchAll());
@@ -162,7 +162,8 @@ class ProdutoDAO {
             "SELECT p.*, u.nome AS fornecedor_nome
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE p.id IN ($placeholders) AND p.is_deleted = false"
+              WHERE p.id IN ($placeholders) AND p.is_deleted = false
+              ORDER BY p.id ASC"
         );
         $stmt->execute($ids);
         return array_map(fn($r) => new Produto($r), $stmt->fetchAll());

@@ -17,9 +17,9 @@ class PedidoDAO {
     /** Pedidos de um comprador com seus itens */
     public function listarPorComprador(int $compradorId): array {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM pedidos
-              WHERE comprador_id = :cid
-              ORDER BY criado_em DESC'
+                        'SELECT * FROM pedidos
+                            WHERE comprador_id = :cid
+                            ORDER BY id ASC'
         );
         $stmt->execute([':cid' => $compradorId]);
         $rows = $stmt->fetchAll();
@@ -35,10 +35,10 @@ class PedidoDAO {
 
     public function listarPorCompradorPaginado(int $compradorId, int $limite, int $offset): array {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM pedidos
-              WHERE comprador_id = :cid
-              ORDER BY criado_em DESC
-              LIMIT :limite OFFSET :offset'
+                        'SELECT * FROM pedidos
+                            WHERE comprador_id = :cid
+                            ORDER BY id ASC
+                            LIMIT :limite OFFSET :offset'
         );
         $stmt->bindValue(':cid', $compradorId, PDO::PARAM_INT);
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
@@ -69,7 +69,7 @@ class PedidoDAO {
                JOIN itens_pedido ip ON ip.pedido_id = p.id
                JOIN produtos pr     ON pr.id = ip.produto_id
               WHERE pr.fornecedor_id = :fid
-              ORDER BY p.criado_em DESC'
+              ORDER BY p.id ASC'
         );
         $stmt->execute([':fid' => $fornecedorId]);
         $rows = $stmt->fetchAll();
@@ -91,7 +91,7 @@ class PedidoDAO {
                JOIN itens_pedido ip ON ip.pedido_id = p.id
                JOIN produtos pr     ON pr.id = ip.produto_id
               WHERE pr.fornecedor_id = :fid
-              ORDER BY p.criado_em DESC
+              ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
         $stmt->bindValue(':fid', $fornecedorId, PDO::PARAM_INT);
@@ -131,7 +131,8 @@ class PedidoDAO {
                FROM itens_pedido ip
                JOIN produtos p ON p.id = ip.produto_id
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE ip.pedido_id = :pid'
+              WHERE ip.pedido_id = :pid
+              ORDER BY p.id ASC'
         );
         $stmt->execute([':pid' => $pedidoId]);
         return array_map(fn($r) => new ItemPedido($r), $stmt->fetchAll());
@@ -148,7 +149,8 @@ class PedidoDAO {
                FROM itens_pedido ip
                JOIN produtos p ON p.id = ip.produto_id
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE ip.pedido_id = :pid AND p.fornecedor_id = :fid'
+              WHERE ip.pedido_id = :pid AND p.fornecedor_id = :fid
+              ORDER BY p.id ASC'
         );
         $stmt->execute([':pid' => $pedidoId, ':fid' => $fornecedorId]);
         return array_map(fn($r) => new ItemPedido($r), $stmt->fetchAll());
@@ -175,7 +177,7 @@ class PedidoDAO {
                LEFT JOIN produtos pr ON pr.id = ip.produto_id
                LEFT JOIN usuarios uf ON uf.id = pr.fornecedor_id
               GROUP BY p.id, u.nome, u.endereco
-              ORDER BY p.criado_em DESC
+              ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
