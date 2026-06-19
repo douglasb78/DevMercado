@@ -205,6 +205,18 @@ function finalizarCompra() {
         window.location.href = '/login_page.php?next=shopping_cart_page.php';
         return;
       }
+      if (data.endereco_faltando) {
+        const el = document.getElementById('msg-cart');
+        el.innerHTML = '<strong>Erro:</strong> ' + data.erro + '<br><a href="/profile_page.php" style="color:#721c24;font-weight:700">Ir para meu perfil</a>';
+        el.style.background = '#f8d7da';
+        el.style.color       = '#721c24';
+        el.style.borderColor = '#f5c6cb';
+        el.style.display = 'block';
+        // Do not auto-hide for this important error
+        btn.disabled = false;
+        btn.textContent = 'Finalizar Compra';
+        return;
+      }
       mostrarMsg(data.erro, false);
       btn.disabled = false;
       btn.textContent = 'Finalizar Compra';

@@ -33,6 +33,11 @@ class PedidoController {
                 'mensagem' => 'Pedido realizado com sucesso!',
                 'pedido_id' => $pedido->id,
             ]);
+        } catch (EnderecoFaltandoException $e) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['erro' => $e->getMessage(), 'endereco_faltando' => true]);
+            exit;
         } catch (RuntimeException $e) {
             $this->erroJson($e->getMessage());
         }

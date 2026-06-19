@@ -3,6 +3,8 @@ require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/../model/Pedido.php';
 require_once __DIR__ . '/../model/ItemPedido.php';
 
+class EnderecoFaltandoException extends RuntimeException {}
+
 class PedidoDAO {
     private PDO $pdo;
 
@@ -204,6 +206,15 @@ class PedidoDAO {
      * @param  ItemCarrinho[] $itensCarrinho
      */
     public function criarDesdoCarrinho(int $compradorId, array $itensCarrinho): Pedido {
+        // Verifica se o comprador tem endereço cadastrado
+        $stmtEnd = $this->pdo->prepare('SELECT endereco FROM usuarios WHERE id = :id LIMIT 1');
+        $stmtEnd->execute([':id' => $compradorId]);
+        $row = $stmtEnd->fetch();
+        $endereco = $row['endereco'] ?? null;
+        if (trim((string)($endereco ?? '')) === '') {
+            throw new EnderecoFaltandoException('Cadastre um endereço no seu perfil antes de finalizar a compra.');
+        }
+
         $this->pdo->beginTransaction();
         try {
             $total = array_sum(array_map(fn($i) => $i->subtotal(), $itensCarrinho));
