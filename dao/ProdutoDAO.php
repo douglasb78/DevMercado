@@ -229,6 +229,14 @@ class ProdutoDAO {
         return $stmt->execute([':est' => $novoEstoque, ':id' => $id]);
     }
 
+    /** Marca ou desmarca um produto como removido (soft delete) - usado por admin */
+    public function setDeleted(int $id, bool $isDeleted): bool {
+        $stmt = $this->pdo->prepare(
+            'UPDATE produtos SET is_deleted = :flag WHERE id = :id'
+        );
+        return $stmt->execute([':flag' => $isDeleted ? 'true' : 'false', ':id' => $id]);
+    }
+
     public function decrementarEstoque(int $id, int $quantidade): bool {
         $stmt = $this->pdo->prepare(
             'UPDATE produtos

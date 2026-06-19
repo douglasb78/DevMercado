@@ -294,4 +294,64 @@ class PedidoDAO {
             ':id'     => $pedidoId,
         ]);
     }
+
+    /**
+     * Atualiza a quantidade de um item dentro de um pedido.
+     * Ajusta o estoque do produto e recalcula o total do pedido dentro de uma transação.
+     * Retorna o novo total do pedido.
+     */
+    public function atualizarItemQuantidade(int $pedidoId, int $produtoId, int $novaQuantidade): float {
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare(
+                'SELECT quantidade, preco_unit FROM itens_pedido WHERE pedido_id = :pid AND produto_id = :prod LIMIT 1'
+            );
+            $stmt->execute([':pid' => $pedidoId, ':prod' => $produtoId]);
+            $row = $stmt->fetch();
+            if (!$row) {
+                throw new RuntimeException('Item não encontrado no pedido.');
+            }
+
+            $quantAtual = (int) $row['quantidade'];
+
+            if ($novaQuantidade <= 0) {
+                // remover item e devolver estoque
+                $this->pdo->prepare('DELETE FROM itens_pedido WHERE pedido_id = :pid AND produto_id = :prod')
+                          ->execute([':pid' => $pedidoId, ':prod' => $produtoId]);
+                $this->pdo->prepare('UPDATE produtos SET estoque = estoque + :qtd WHERE id = :id')
+                          ->execute([':qtd' => $quantAtual, ':id' => $produtoId]);
+            } else {
+                $diff = $novaQuantidade - $quantAtual;
+                if ($diff > 0) {
+                    $stmtStock = $this->pdo->prepare(
+                        'UPDATE produtos SET estoque = estoque - :diff WHERE id = :id AND estoque >= :diff'
+                    );
+                    $stmtStock->execute([':diff' => $diff, ':id' => $produtoId]);
+                    if ($stmtStock->rowCount() === 0) {
+                        throw new RuntimeException('Estoque insuficiente para ajustar o pedido.');
+                    }
+                } elseif ($diff < 0) {
+                    $this->pdo->prepare('UPDATE produtos SET estoque = estoque + :inc WHERE id = :id')
+                              ->execute([':inc' => -$diff, ':id' => $produtoId]);
+                }
+
+                $this->pdo->prepare('UPDATE itens_pedido SET quantidade = :qtd WHERE pedido_id = :pid AND produto_id = :prod')
+                          ->execute([':qtd' => $novaQuantidade, ':pid' => $pedidoId, ':prod' => $produtoId]);
+            }
+
+            // Recalcula total do pedido
+            $stmtTotal = $this->pdo->prepare('SELECT COALESCE(SUM(quantidade * preco_unit), 0) FROM itens_pedido WHERE pedido_id = :pid');
+            $stmtTotal->execute([':pid' => $pedidoId]);
+            $total = (float) $stmtTotal->fetchColumn();
+
+            $this->pdo->prepare('UPDATE pedidos SET total = :total WHERE id = :pid')
+                      ->execute([':total' => $total, ':pid' => $pedidoId]);
+
+            $this->pdo->commit();
+            return $total;
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
 }
