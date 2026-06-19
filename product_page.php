@@ -47,7 +47,7 @@ $quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1
       Vendido por: <a href="/view_store_page.php?id=<?= $produto->fornecedorId ?>" class="vendedor" style="text-decoration:none;color:inherit;">
         <strong><?= htmlspecialchars($produto->fornecedorNome) ?></strong>
       </a>
-      <div style="margin-top:6px;font-size:0.85rem;color:<?= $produto->estoque > 0 ? '#00a650' : '#c00' ?>;">
+      <div id="stock-info" style="margin-top:6px;font-size:0.85rem;color:<?= $produto->estoque > 0 ? '#00a650' : '#c00' ?>;">
         <?= $produto->estoque > 0
             ? "✓ Em estoque ({$produto->estoque} disponíveis)"
             : "✗ Produto indisponível" ?>
@@ -97,6 +97,7 @@ $quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1
 
 <script>
 const estoqueMax = <?= $produto->estoque ?>;
+const produtoId = <?= $produto->id ?>;
 const produtoPreco = <?= json_encode($produto->preco) ?>;
 const produtoNome = <?= json_encode($produto->nome) ?>;
 const produtoFoto = <?= json_encode($produto->fotoUrl ?: 'https://placehold.co/420x420?text=Sem+Foto') ?>;
@@ -110,15 +111,46 @@ document.addEventListener('DOMContentLoaded', () => {
 function alterarQuantidade(valor) {
   const span = document.getElementById('qtd');
   let qtd = parseInt(span.textContent);
-  if (valor > 0 && qtd >= estoqueMax) {
-    mostrarMensagem('Não há mais unidades em estoque.', '#c00');
+  const novaQtd = Math.max(1, Math.min(estoqueMax, qtd + valor));
+  if (novaQtd === qtd) {
+    if (valor > 0 && qtd >= estoqueMax) mostrarMensagem('Não há mais unidades em estoque.', '#c00');
     return;
   }
-  qtd = Math.max(1, Math.min(estoqueMax, qtd + valor));
-  span.textContent = qtd;
-  if (window.cartWidget && typeof window.cartWidget.showAddTotal === 'function') {
-    window.cartWidget.showAddTotal(qtd, produtoPreco);
-  }
+
+  const buttons = document.querySelectorAll('#product_page .product-buy-box .quantidade button');
+  buttons.forEach(b => b.disabled = true);
+
+  fetch('/shopping_cart_page.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'action=carrinho_atualizar&produto_id=' + produtoId + '&quantidade=' + novaQtd
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.erro) {
+      mostrarMensagem(data.erro, '#c00');
+      return;
+    }
+
+    span.textContent = novaQtd;
+    if (data.estoque !== undefined) {
+      const restante = Math.max(0, data.estoque - novaQtd);
+      const el = document.getElementById('stock-info');
+      if (data.estoque <= 0) {
+        el.textContent = '✗ Produto indisponível';
+        el.style.color = '#c00';
+      } else {
+        el.textContent = '✓ Em estoque (' + restante + ' disponíveis)';
+        el.style.color = restante > 0 ? '#00a650' : '#c00';
+      }
+    }
+
+    if (window.cartWidget && typeof window.cartWidget.showAddTotal === 'function') {
+      window.cartWidget.showAddTotal(novaQtd, produtoPreco);
+    }
+  })
+  .catch(() => mostrarMensagem('Erro ao atualizar quantidade.', '#c00'))
+  .finally(() => buttons.forEach(b => b.disabled = false));
 }
 
 function mostrarMensagem(msg, cor = '#00a650') {

@@ -68,7 +68,12 @@ class CarrinhoController {
             $this->sincronizarUsuario((int) $_SESSION['usuario_id'], $carrinho);
         }
 
-        $this->jsonSucesso(['mensagem' => 'Carrinho atualizado.']);
+        $this->jsonSucesso([
+            'mensagem' => 'Carrinho atualizado.',
+            'estoque' => $produto->estoque,
+            'quantidade' => $quantidade,
+            'total_itens' => array_sum($carrinho),
+        ]);
     }
 
     public function remover(): void {
