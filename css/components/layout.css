@@ -1,9 +1,11 @@
 :root {
-	--ml-amarelo: #ffe600;
+	--ml-azul-navbar: #004d8e;
 	--ml-azul: #3483fa;
+	--ml-azul-banner: #0a5a9c;
 	--ml-azul-escuro: #2968c8;
 	--ml-verde: #00a650;
-	--ml-texto: rgba(0, 0, 0, .9);
+	--ml-texto: #444;
+	--ml-texto-alt: #eee;
 	--ml-texto-suave: rgba(0, 0, 0, .55);
 	--ml-fundo: #ebebeb;
 	--ml-card: #fff;
@@ -48,6 +50,8 @@ button:hover {
 	flex-direction: column;
 	flex: 1 1 auto;
 	padding: 24px 0;
+	background: linear-gradient(to bottom, hsl(207 100% 25% / 1) 20%, hsl(207 75% 50% / 1) 100%);
+	background-repeat: no-repeat;
 }
 
 #website-content h2 {
@@ -69,6 +73,10 @@ button:hover {
 /* Mensagens de feedback */
 .msg-erro { color: #c00; margin-bottom: 12px; }
 .msg-ok   { color: #0a7d34; margin-bottom: 12px; }
+
+.perfil-hint, .perfil-header-info * {
+	margin-top: 12px;
+}
 
 /* Aviso inline (exibido via JS) */
 .aviso-inline {

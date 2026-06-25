@@ -2,7 +2,6 @@
 	background-color: white;
 	padding: 40px;
 	border: 1px solid var(--ml-borda);
-	border-radius: var(--ml-raio);
 	box-shadow: var(--ml-sombra);
 	max-width: 1040px;
 	margin: auto;

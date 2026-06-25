@@ -6,7 +6,7 @@
     flex: 1;
 }
 .home-banner {
-    background: var(--ml-azul);
+    background: var(--ml-azul-banner);
     color: white;
     padding: 48px 36px;
     border-radius: var(--ml-raio);
@@ -36,7 +36,7 @@
 .home-banner a:hover { background: #e8f4ff; }
 
 .home-section-title {
-    color: var(--ml-texto);
+	color: var(--ml-texto-alt);
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0;
