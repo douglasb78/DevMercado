@@ -358,6 +358,10 @@
   font-weight: 600;
 }
 
+.compact-detail-table th:nth-child(4) {
+  display: none;
+}
+
 .compact-master-row {
   cursor: pointer;
 }

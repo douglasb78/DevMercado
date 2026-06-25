@@ -30,6 +30,16 @@ $offsetPedidos = ($paginaPedidos - 1) * $porPaginaPedidos;
 $totalPedidos = $pedidoDao->contarPorFornecedor($fid);
 $totalPaginasPedidos = max(1, (int) ceil($totalPedidos / $porPaginaPedidos));
 $pedidos = $pedidoDao->listarPorFornecedorPaginado($fid, $porPaginaPedidos, $offsetPedidos);
+foreach ($pedidos as $idx => $pedido) {
+    $pedido->itens = array_values(array_filter(
+        $pedido->itens,
+        fn($item) => $item->fornecedorId === $fid
+    ));
+    if (empty($pedido->itens)) {
+        unset($pedidos[$idx]);
+    }
+}
+$pedidos = array_values($pedidos);
 
 $categorias = [
     'Eletrodomésticos', 'Celulares & Telefonia', 'Móveis',
@@ -133,16 +143,20 @@ ob_start();
             <th>Fotos</th>
             <th>Status</th>
             <th>Entrega prevista</th>
-            <th>Total</th>
+            <th>Itens da loja</th>
             <th>Ação</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($pedidos as $pedido): ?>
             <?php
-              $nomes = array_map(fn($i) => $i->produtoNome, $pedido->itens);
-              $produtosResumo = implode(', ', array_slice($nomes, 0, 2));
-              if (count($nomes) > 2) $produtosResumo .= ' +' . (count($nomes) - 2);
+              $produtosResumoLista = array_map(
+                fn($i, $n) => 'Produto ' . ($n + 1) . ' (#' . $i->produtoId . ')',
+                $pedido->itens,
+                array_keys($pedido->itens)
+              );
+              $produtosResumo = implode(', ', array_slice($produtosResumoLista, 0, 2));
+              if (count($produtosResumoLista) > 2) $produtosResumo .= ' +' . (count($produtosResumoLista) - 2);
             ?>
             <tr class="compact-master-row" onclick="toggleDetalhe('entrega-<?= $pedido->id ?>')">
               <td data-label="Pedido">#<?= $pedido->id ?><br/><?= $pedido->dataCompraFormatada() ?></td>
@@ -174,7 +188,7 @@ ob_start();
               <td data-label="Data" onclick="event.stopPropagation()">
                 <input type="date" id="data-<?= $pedido->id ?>" value="<?= htmlspecialchars($pedido->dataEstimada) ?>">
               </td>
-              <td data-label="Total"><?= $pedido->totalFormatado() ?></td>
+              <td data-label="Itens da loja"><?= count($pedido->itens) ?></td>
               <td data-label="Ação" onclick="event.stopPropagation()">
                 <button class="btn-salvar btn-compacto" type="button" onclick="salvarStatus(<?= $pedido->id ?>)">Salvar</button>
               </td>
@@ -184,16 +198,18 @@ ob_start();
                 <table class="compact-detail-table">
                   <thead>
                     <tr>
+                      <th>Item</th>
+                      <th>Produto ID</th>
                       <th>Produto</th>
-                      <th>Qtd</th>
                       <th>Unitário</th>
-                      <th>Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <?php foreach ($pedido->itens as $item): ?>
+                    <?php foreach ($pedido->itens as $idxItem => $item): ?>
                       <?php $fotoRaw = $item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
                       <tr>
+                        <td>Produto <?= $idxItem + 1 ?></td>
+                        <td>#<?= $item->produtoId ?></td>
                         <td>
                           <span class="detail-product">
                             <img src="<?= $foto ?>" alt="<?= htmlspecialchars($item->produtoNome) ?>"
@@ -201,9 +217,6 @@ ob_start();
                             <?= htmlspecialchars($item->produtoNome) ?>
                           </span>
                         </td>
-                        <td><?= $item->quantidade ?></td>
-                        <td><?= 'R$ ' . number_format($item->precoUnit, 2, ',', '.') ?></td>
-                        <td><?= $item->subtotalFormatado() ?></td>
                       </tr>
                     <?php endforeach; ?>
                   </tbody>
