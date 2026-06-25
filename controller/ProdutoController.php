@@ -3,14 +3,16 @@ require_once __DIR__ . '/../dao/ProdutoDAO.php';
 
 class ProdutoController {
 
-    private const CATEGORIAS_PERMITIDAS = [
-        'Eletrodomésticos',
-        'Celulares & Telefonia',
-        'Móveis',
-        'Computadores',
-        'Notebooks',
-        'Alimentos & Bebidas',
-        'Automóveis',
+    public const CATEGORIAS_PERMITIDAS = [
+        'Placa de Vídeo',
+        'Processador',
+        'Placa-mãe',
+        'Memória RAM',
+        'Armazenamento',
+        'Fonte',
+        'Gabinete',
+        'Refrigeração',
+        'Periféricos',
         'Outros',
     ];
 
@@ -93,7 +95,7 @@ class ProdutoController {
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
         if (!$produtoId) $this->erroJson('ID inválido.');
 
-        $ok = $this->dao->excluir($produtoId, (int) $_SESSION['usuario_id']);
+        $ok = $this->dao->softDelete($produtoId, (int) $_SESSION['usuario_id']);
         if (!$ok) $this->erroJson('Produto não encontrado ou sem permissão.', 403);
 
         $this->jsonSucesso(['mensagem' => 'Produto excluído!']);

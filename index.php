@@ -8,12 +8,12 @@ if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
 }
 
 $dao       = new ProdutoDAO();
-$destaques = $dao->listarDisponiveis(8);
+$destaques = $dao->listarDisponiveis(28);
 
 ob_start();
 ?>
 
-<link rel="stylesheet" href="/css/home_page.css">
+<link rel="stylesheet" href="/css/pages/home.css">
 
 <div id="home-page">
     <div class="home-banner">

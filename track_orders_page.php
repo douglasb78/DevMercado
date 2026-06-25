@@ -25,9 +25,9 @@ function pedidoProdutosResumo(array $itens): string {
 
 ob_start();
 ?>
-<link rel="stylesheet" href="/css/track_orders_page.css">
+<link rel="stylesheet" href="/css/pages/track_orders.css">
 
-<div id="track_orders" class="compact-page">
+<div id="track-orders" class="compact-page">
   <div class="compact-header">
     <h2>Acompanhar Compras</h2>
     <span><?= $total ?> pedido<?= $total === 1 ? '' : 's' ?></span>
@@ -54,7 +54,7 @@ ob_start();
       </thead>
       <tbody>
         <?php foreach ($pedidos as $pedido): ?>
-          <tr class="master-row" onclick="toggleDetalhe('pedido-<?= $pedido->id ?>')">
+          <tr class="master-row" onclick="PedidoDetalhe.toggleLinha('pedido-<?= $pedido->id ?>', <?= $pedido->id ?>, 'det-pedido-<?= $pedido->id ?>', false)">
             <td data-label="Pedido">
               #<?= $pedido->id ?> - 
               <?= $pedido->dataCompraFormatada() ?>
@@ -80,32 +80,7 @@ ob_start();
           </tr>
           <tr id="pedido-<?= $pedido->id ?>" class="detail-row">
             <td colspan="7">
-              <table class="detail-table">
-                <thead>
-                  <tr>
-                    <th>Produto</th>
-                    <th>Quantidade</th>
-                    <th>Unidades</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php foreach ($pedido->itens as $item): ?>
-                    <tr>
-                      <td>
-                        <span class="detail-product">
-                          <img src="<?= pedidoThumbUrl($item->produtoFoto) ?>" alt="<?= htmlspecialchars($item->produtoNome) ?>"
-                               onclick='abrirImagem(<?= json_encode($item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod') ?>, <?= json_encode($item->produtoNome) ?>)'>
-                          <?= htmlspecialchars($item->produtoNome) ?>
-                        </span>
-                      </td>
-                      <td><?= $item->quantidade ?></td>
-                      <td><?= 'R$ ' . number_format($item->precoUnit, 2, ',', '.') ?></td>
-                      <td><?= $item->subtotalFormatado() ?></td>
-                    </tr>
-                  <?php endforeach; ?>
-                </tbody>
-              </table>
+              <div id="det-pedido-<?= $pedido->id ?>"></div>
             </td>
           </tr>
         <?php endforeach; ?>

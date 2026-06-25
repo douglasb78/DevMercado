@@ -22,7 +22,7 @@ $produtoDAO = new ProdutoDAO();
 $produtos = $produtoDAO->listarPorFornecedor($fornecedorId);
 ob_start();
 ?>
-<link rel="stylesheet" href="/css/view_store_page.css">
+<link rel="stylesheet" href="/css/pages/view_store.css">
 
 <div class="supplier-container">
     <div class="supplier-header">
@@ -45,7 +45,7 @@ ob_start();
         <?php else: ?>
             <div class="produtos-grid">
                 <?php foreach ($produtos as $p): ?>
-                    <a class="produto-card" href="/product_page.php?id=<?= $p->id ?>" style="text-decoration:none;color:inherit;">
+                    <a class="produto-card link-limpo" href="/product_page.php?id=<?= $p->id ?>">
                         <img src="<?= htmlspecialchars($p->fotoUrl ?: 'https://placehold.co/220x180?text=Sem+Foto') ?>"
                              alt="<?= htmlspecialchars($p->nome) ?>">
                         <h3><?= htmlspecialchars($p->nome) ?></h3>

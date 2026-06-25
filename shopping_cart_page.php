@@ -26,15 +26,15 @@ $itens = $carrinhoController->itens();
 $total = array_sum(array_map(fn($i) => $i->subtotal(), $itens));
 ob_start();
 ?>
-<link rel="stylesheet" href="/css/shopping_cart_page.css">
-<div id="shopping_cart">
+<link rel="stylesheet" href="/css/pages/shopping_cart.css">
+<div id="shopping-cart">
   <h2>Carrinho de Compras</h2>
 
   <?php if (empty($itens)): ?>
-    <p style="text-align:center;padding:40px;color:#666;border:1px solid #ddd;">
+    <p class="estado-vazio estado-vazio--card">
       Seu carrinho está vazio.
       <br><br>
-      <a href="/listings_page.php" style="color:#0066cc;">Ver produtos</a>
+      <a href="/listings_page.php">Ver produtos</a>
     </p>
   <?php else: ?>
 
@@ -51,7 +51,7 @@ ob_start();
 
         <div class="quantidade">
           <button type="button" onclick="alterarQtd(<?= $item->produtoId ?>, -1)">–</button>
-          <span id="qtd-<?= $item->produtoId ?>" style="width:30px;text-align:center;">
+          <span id="qtd-<?= $item->produtoId ?>" class="qtd-valor">
             <?= $item->quantidade ?>
           </span>
           <button type="button" onclick="alterarQtd(<?= $item->produtoId ?>, 1)">+</button>
@@ -72,7 +72,6 @@ ob_start();
     <div class="resumo">
       <h2>Resumo do Pedido</h2>
       <p>Itens: <strong id="total-itens"><?= count($itens) ?></strong></p>
-      <p>Frete: <strong>R$ 0,00</strong> <small>(Frete grátis)</small></p>
       <div class="total" id="total-geral">
         Total: <?= 'R$ ' . number_format($total, 2, ',', '.') ?>
       </div>
@@ -83,8 +82,7 @@ ob_start();
 
   <?php endif; ?>
 
-  <div id="msg-cart" style="display:none;margin-top:12px;padding:12px;
-       background:#d4edda;border:1px solid #c3e6cb;color:#155724;font-weight:600;"></div>
+  <div id="msg-cart" class="aviso-inline"></div>
 </div>
 
 <script>
@@ -207,7 +205,7 @@ function finalizarCompra() {
       }
       if (data.endereco_faltando) {
         const el = document.getElementById('msg-cart');
-        el.innerHTML = '<strong>Erro:</strong> ' + data.erro + '<br><a href="/profile_page.php" style="color:#721c24;font-weight:700">Ir para meu perfil</a>';
+        el.innerHTML = '<strong>Erro:</strong> ' + data.erro + '<br><a href="/profile_page.php" class="link-erro">Ir para meu perfil</a>';
         el.style.background = '#f8d7da';
         el.style.color       = '#721c24';
         el.style.borderColor = '#f5c6cb';

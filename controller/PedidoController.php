@@ -4,7 +4,7 @@ require_once __DIR__ . '/../dao/CarrinhoDAO.php';
 
 class PedidoController {
 
-    private const STATUS_PERMITIDOS = ['preparacao', 'transito', 'saiu', 'entregue'];
+    private const STATUS_PERMITIDOS = ['preparacao', 'transito', 'saiu', 'entregue', 'cancelado'];
 
     private PedidoDAO $pedidoDao;
     private CarrinhoDAO $carrinhoDao;

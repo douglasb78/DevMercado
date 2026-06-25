@@ -41,3 +41,14 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+
+/* ── Base responsiva global ──────────────────────────────────────────────
+   box-sizing border-box em tudo: a largura passa a incluir padding e borda,
+   evitando estouros horizontais em telas pequenas. Imagens/mídia nunca
+   ultrapassam a largura do contêiner. */
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+img, video {
+	max-width: 100%;
+}

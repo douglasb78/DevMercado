@@ -22,8 +22,8 @@ $totalPaginas = (int) ceil($total / $porPagina);
 
 ob_start();
 ?>
-<link rel="stylesheet" href="/css/listings_page.css">
-<div id="products_page">
+<link rel="stylesheet" href="/css/pages/listings.css">
+<div id="products-page">
 
   <div class="sidebar">
     <h2>Categorias</h2>
@@ -48,22 +48,21 @@ ob_start();
 
     <div class="produtos-grid">
       <?php if (empty($produtos)): ?>
-        <p style="grid-column:1/-1;text-align:center;padding:40px;color:#666;">
+        <p class="estado-vazio">
           Nenhum produto encontrado.
         </p>
       <?php else: ?>
         <?php foreach ($produtos as $p): ?>
-          <a class="produto-card" href="/product_page.php?id=<?= $p->id ?>" style="text-decoration:none;color:inherit;">
+          <?php $semEstoque = !$p->getEstoque()->disponivel(); ?>
+          <a class="produto-card link-limpo<?= $semEstoque ? ' indisponivel' : '' ?>" href="/product_page.php?id=<?= $p->id ?>">
+            <?php if ($semEstoque): ?><span class="badge-indisponivel">Indisponível</span><?php endif; ?>
             <img src="<?= htmlspecialchars($p->fotoUrl ?: 'https://placehold.co/220x180?text=Sem+Foto') ?>"
                  alt="<?= htmlspecialchars($p->nome) ?>">
             <h3><?= htmlspecialchars($p->nome) ?></h3>
             <div class="preco"><?= $p->precoFormatado() ?></div>
-            <div class="frete">Frete grátis</div>
-            <?php if ($p->estoque > 0): ?>
-              <div class="estoque-disponivel">Em estoque</div>
-            <?php else: ?>
-              <div class="estoque-indisponivel">Sem estoque</div>
-            <?php endif; ?>
+            <div class="<?= $semEstoque ? 'estoque-indisponivel' : 'estoque-disponivel' ?>">
+              <?= $semEstoque ? 'Indisponível' : 'Em estoque' ?>
+            </div>
           </a>
         <?php endforeach; ?>
       <?php endif; ?>

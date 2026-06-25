@@ -22,9 +22,6 @@ class CarrinhoDAO {
                JOIN produtos p ON p.id = c.produto_id
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE c.usuario_id = :uid
-                AND p.is_deleted = false
-                AND u.is_supplier = true
-                AND p.estoque > 0
               ORDER BY p.id ASC'
         );
         $stmt->execute([':uid' => $usuarioId]);
@@ -47,31 +44,6 @@ class CarrinhoDAO {
         ]);
     }
 
-    /** Atualiza a quantidade */
-    public function atualizarQuantidade(int $usuarioId, int $produtoId, int $quantidade): bool {
-        if ($quantidade <= 0) {
-            return $this->remover($usuarioId, $produtoId);
-        }
-        $stmt = $this->pdo->prepare(
-            'UPDATE carrinho
-                SET quantidade = :qtd
-              WHERE usuario_id = :uid AND produto_id = :pid'
-        );
-        return $stmt->execute([
-            ':qtd' => $quantidade,
-            ':uid' => $usuarioId,
-            ':pid' => $produtoId,
-        ]);
-    }
-
-    /** Remove item do carrinho */
-    public function remover(int $usuarioId, int $produtoId): bool {
-        $stmt = $this->pdo->prepare(
-            'DELETE FROM carrinho WHERE usuario_id = :uid AND produto_id = :pid'
-        );
-        return $stmt->execute([':uid' => $usuarioId, ':pid' => $produtoId]);
-    }
-
     /** Esvazia o carrinho inteiro */
     public function limpar(int $usuarioId): bool {
         $stmt = $this->pdo->prepare(
@@ -80,35 +52,4 @@ class CarrinhoDAO {
         return $stmt->execute([':uid' => $usuarioId]);
     }
 
-    /** Calcula o total */
-    public function calcularTotal(int $usuarioId): float {
-        $stmt = $this->pdo->prepare(
-            'SELECT COALESCE(SUM(c.quantidade * p.preco), 0)
-               FROM carrinho c
-               JOIN produtos p ON p.id = c.produto_id
-               JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE c.usuario_id = :uid
-                AND p.is_deleted = false
-                AND u.is_supplier = true
-                AND p.estoque > 0'
-        );
-        $stmt->execute([':uid' => $usuarioId]);
-        return (float) $stmt->fetchColumn();
-    }
-
-    /** Conta itens no carrinho */
-    public function contar(int $usuarioId): int {
-        $stmt = $this->pdo->prepare(
-            'SELECT COALESCE(SUM(c.quantidade), 0)
-               FROM carrinho c
-               JOIN produtos p ON p.id = c.produto_id
-               JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE c.usuario_id = :uid
-                AND p.is_deleted = false
-                AND u.is_supplier = true
-                AND p.estoque > 0'
-        );
-        $stmt->execute([':uid' => $usuarioId]);
-        return (int) $stmt->fetchColumn();
-    }
 }

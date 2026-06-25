@@ -3,7 +3,7 @@
   margin: 0 auto;
   padding: 14px;
   background: #eee;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   flex-grow: 1;
 }
 
@@ -33,7 +33,7 @@
 
 #admin-page .admin-tabs a,
 #admin-page .paginacao a {
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: #fff;
   color: #222;
   padding: 7px 11px;
@@ -43,8 +43,8 @@
 
 #admin-page .admin-tabs a.active,
 #admin-page .paginacao a.active {
-  background: #0066cc;
-  border-color: #0066cc;
+  background: var(--ml-azul);
+  border-color: var(--ml-azul);
   color: #fff;
 }
 
@@ -81,7 +81,7 @@
 
 .admin-master-row button,
 .image-modal-content button {
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: #fff;
   cursor: pointer;
   padding: 4px 8px;
@@ -110,58 +110,6 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-}
-
-.pedido-item-row {
-  display: grid;
-  grid-template-columns: 80px minmax(0, 1fr) 130px;
-  align-items: start;
-  gap: 6px;
-  border: 1px solid #ddd;
-  background: #fff;
-  padding: 5px;
-  font-size: 0.75rem;
-  line-height: 1.16;
-}
-
-.pedido-item-info {
-  display: grid;
-  align-items: start;
-  gap: 3px 7px;
-  min-width: 0;
-}
-
-.pedido-item-info span,
-.pedido-item-info a,
-.pedido-produto-link {
-  color: #222;
-  text-decoration: none;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  overflow-wrap: anywhere;
-  min-width: 0;
-  font-size: 0.9rem;
-}
-
-.pedido-item-info a:hover,
-.pedido-produto-link:hover {
-  color: #0066cc;
-  text-decoration: underline;
-}
-
-.pedido-item-nome {
-  font-weight: 600;
-}
-
-.pedido-produto-link {
-  align-self: center;
-  border: 1px solid #444;
-  background: #fff;
-  padding: 4px 6px;
-  text-align: center;
-  box-sizing: border-box;
-  width: 100%;
 }
 
 .thumb-button {
@@ -367,24 +315,140 @@
     display: none;
   }
 
-  .pedido-item-row {
-    grid-template-columns: 76px minmax(0, 1fr);
-    gap: 5px;
-    padding: 5px;
-  }
-
-  .pedido-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .pedido-produto-link {
-    grid-column: 1 / -1;
-  }
-
   .thumb-button.pedido-item-foto {
     width: 72px;
     height: 72px;
   }
 }
+
+/* Barra de ferramentas (busca + adicionar) — igual nas 3 abas */
+.admin-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+
+.admin-busca-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--ml-borda);
+  font-size: 0.9rem;
+}
+
+.btn-adicionar-admin {
+  padding: 8px 14px;
+  background: var(--ml-azul);
+  color: #fff;
+  border: 1px solid var(--ml-azul);
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.btn-adicionar-admin:hover {
+  background: var(--ml-azul-escuro);
+}
+
+.admin-master-row .btn-perigo {
+  border-color: #c00;
+  color: #c00;
+}
+
+/* Badge de status (aba Pedidos) */
+.admin-orders-table .status {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid var(--ml-borda);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-orders-table .preparacao { background: #fff3cd; color: #856404; }
+.admin-orders-table .transito   { background: #cce5ff; color: #004085; }
+.admin-orders-table .saiu       { background: #d1ecf1; color: #0c5460; }
+.admin-orders-table .entregue   { background: #d4edda; color: #155724; }
+.admin-orders-table .cancelado  { background: #f8d7da; color: #721c24; }
+
+/* Modais padronizados do admin */
+.admin-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.admin-modal.visible {
+  display: flex;
+}
+
+.admin-modal-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 96%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.admin-modal-box h3 {
+  margin-top: 0;
+}
+
+.admin-modal-box label {
+  display: block;
+  font-size: 0.85rem;
+  color: #444;
+  margin: 8px 0 4px;
+}
+
+.admin-modal-box input,
+.admin-modal-box select,
+.admin-modal-box textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--ml-borda);
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.admin-modal-box .check-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-modal-box .check-line input {
+  width: auto;
+}
+
+.admin-modal-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.admin-modal-acoes button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.admin-modal-acoes .btn-cancelar { background: #ccc; }
+.admin-modal-acoes .btn-salvar   { background: var(--ml-azul); color: #fff; }
+
+/* Estilos antes inline */
+.admin-modal-box .check-line label { margin: 0; }
+#modal-item-editar .admin-modal-box { max-width: 420px; }
+#admin-item-produto-nome { font-weight: 600; padding: 4px 0; }

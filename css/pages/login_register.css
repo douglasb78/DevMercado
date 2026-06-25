@@ -1,7 +1,9 @@
 .login-container {
 	background-color: white;
 	padding: 40px;
-	border: 1px solid #444;
+	border: 1px solid var(--ml-borda);
+	border-radius: var(--ml-raio);
+	box-shadow: var(--ml-sombra);
 	max-width: 600px;
 	margin: auto;
 	min-width: 30%;
@@ -22,7 +24,7 @@
 .login-container input, .login-container button {
 	margin-bottom: 6px;
 	padding: 8px;
-	border: 1px solid #444;
+	border: 1px solid var(--ml-borda);
 	border-radius: 0;
 }
 

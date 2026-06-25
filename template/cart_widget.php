@@ -26,7 +26,7 @@ $cartTotal = $total;
 $cartQty = $qtyTotal;
 ?>
 
-<link rel="stylesheet" href="/template/css/cart_widget.css">
+<link rel="stylesheet" href="/css/components/cart.css">
 
 <div id="cart-widget" aria-live="polite">
   <div class="cw-toggle" id="cart-widget-toggle" role="button" aria-expanded="false">
@@ -67,7 +67,7 @@ $cartQty = $qtyTotal;
       let qty = 0; let total = 0;
       itemsEl.innerHTML = '';
       if (items.length === 0) {
-        itemsEl.innerHTML = '<div style="padding:14px;color:#555;text-align:center">Carrinho vazio</div>';
+        itemsEl.innerHTML = '<div class="cart-vazio">Carrinho vazio</div>';
       } else {
         items.forEach(it => {
           qty += Number(it.quantidade || 0);

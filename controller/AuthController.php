@@ -83,11 +83,20 @@ class AuthController {
     }
 
     public function logout(): void {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
         session_destroy();
+        // Limpa o carrinho (cookie) para não vazar itens para o próximo visitante do navegador.
+        setcookie('devmercado_carrinho', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
+        unset($_COOKIE['devmercado_carrinho']);
         header('Location: index.php');
         exit;
     }
 
+    /** Atualiza dados pessoais, documento e endereço estruturado (não mexe na senha). */
     public function atualizarPerfil(): void {
         if (empty($_SESSION['usuario_id'])) {
             $_SESSION['erro_perfil'] = 'Faça login para atualizar seu perfil.';
@@ -95,83 +104,163 @@ class AuthController {
             exit;
         }
 
-        $id = $_SESSION['usuario_id'];
-        $nome = trim($_POST['nome'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $telefone = trim($_POST['telefone'] ?? '');
-        $cartaocredito = trim($_POST['cartaocredito'] ?? '');
-        $endereco = trim($_POST['endereco'] ?? '');
-        $isSupplier = isset($_POST['is_supplier']);
-        $senha = $_POST['senha'] ?? '';
-        $senhaConfirm = $_POST['senha_confirm'] ?? '';
-
-        if (!$nome) {
-            $_SESSION['erro_perfil'] = 'Nome é obrigatório.';
-            header('Location: profile_page.php');
-            exit;
-        }
-
-        if (!$email) {
-            $_SESSION['erro_perfil'] = 'E-mail é obrigatório.';
-            header('Location: profile_page.php');
-            exit;
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['erro_perfil'] = 'E-mail inválido.';
-            header('Location: profile_page.php');
-            exit;
-        }
-
+        $id = (int) $_SESSION['usuario_id'];
         $usuarioAtual = $this->dao->buscarPorId($id);
         if (!$usuarioAtual) {
-            $_SESSION['erro_perfil'] = 'Usuário não encontrado.';
-            header('Location: profile_page.php');
-            exit;
+            $this->erroPerfil('Usuário não encontrado.');
         }
 
-        // Não permitir que a opção de fornecedor seja removida uma vez ativada.
-        // Mesmo que a requisição tente desmarcar, preservamos o valor verdadeiro.
+        $nome       = trim($_POST['nome'] ?? '');
+        $email      = trim($_POST['email'] ?? '');
+        $telefone   = trim($_POST['telefone'] ?? '');
+        $isSupplier = isset($_POST['is_supplier']);
+
+        $cpf         = preg_replace('/\D/', '', $_POST['cpf'] ?? '');
+        $cep         = trim($_POST['cep'] ?? '');
+        $logradouro  = trim($_POST['endereco_logradouro'] ?? '');
+        $numero      = trim($_POST['endereco_numero'] ?? '');
+        $complemento = trim($_POST['endereco_complemento'] ?? '');
+        $bairro      = trim($_POST['endereco_bairro'] ?? '');
+        $cidade      = trim($_POST['endereco_cidade'] ?? '');
+        $uf          = strtoupper(trim($_POST['endereco_uf'] ?? ''));
+        $cartaoDigitos = preg_replace('/\D/', '', $_POST['cartaocredito'] ?? '');
+
+        if (!$nome)  $this->erroPerfil('Nome é obrigatório.');
+        if (!$email) $this->erroPerfil('E-mail é obrigatório.');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $this->erroPerfil('E-mail inválido.');
+        if ($cpf !== '' && !self::cpfValido($cpf))        $this->erroPerfil('CPF inválido.');
+        if ($uf !== '' && strlen($uf) !== 2)              $this->erroPerfil('UF deve ter 2 letras (ex.: SP).');
+
+        // Não permitir remover a condição de fornecedor uma vez ativada.
         $isSupplier = $usuarioAtual->isSupplier || $isSupplier;
 
         if ($email !== $usuarioAtual->email && $this->dao->emailJaExiste($email)) {
-            $_SESSION['erro_perfil'] = 'Este e-mail já está cadastrado.';
-            header('Location: profile_page.php');
-            exit;
+            $this->erroPerfil('Este e-mail já está cadastrado.');
         }
 
-        $senhaHash = null;
-        if ($senha) {
-            if (strlen($senha) < 6) {
-                $_SESSION['erro_perfil'] = 'A senha deve ter pelo menos 6 caracteres.';
-                header('Location: profile_page.php');
-                exit;
-            }
-            if ($senha !== $senhaConfirm) {
-                $_SESSION['erro_perfil'] = 'As senhas não coincidem.';
-                header('Location: profile_page.php');
-                exit;
-            }
-            $senhaHash = password_hash($senha, PASSWORD_BCRYPT);
+        // Compõe o endereço legado (usado pelo checkout/pedidos) só quando há endereço
+        // estruturado preenchido — assim não apagamos um endereço antigo já salvo.
+        $endereco = new Endereco([
+            'endereco_logradouro'  => $logradouro,
+            'endereco_numero'      => $numero,
+            'endereco_complemento' => $complemento,
+            'endereco_bairro'      => $bairro,
+            'endereco_cidade'      => $cidade,
+            'endereco_uf'          => $uf,
+            'cep'                  => $cep,
+        ]);
+        $enderecoComposto = $endereco->formatado() ?: null;
+
+        // Nunca armazenamos o número completo do cartão — apenas os 4 últimos, mascarados.
+        $cartaoArmazenar = null;
+        if ($cartaoDigitos !== '') {
+            if (strlen($cartaoDigitos) < 4) $this->erroPerfil('Número de cartão inválido.');
+            $cartaoArmazenar = '•••• ' . substr($cartaoDigitos, -4);
         }
 
         $usuarioAtualizado = $this->dao->atualizar(
             $id,
             $email,
-            $senhaHash,
-            $telefone ?: null,
-            $cartaocredito ?: null,
-            $endereco,
-            $nome,
-            $isSupplier
+            nome: $nome,
+            telefone: $telefone ?: null,
+            isSupplier: $isSupplier,
+            cpf: $cpf,
+            cep: $cep,
+            enderecoLogradouro: $logradouro,
+            enderecoNumero: $numero,
+            enderecoComplemento: $complemento,
+            enderecoBairro: $bairro,
+            enderecoCidade: $cidade,
+            enderecoUf: $uf,
+            endereco: $enderecoComposto,
+            cartaocredito: $cartaoArmazenar
         );
 
-        $_SESSION['usuario_nome'] = $usuarioAtualizado->nome;
+        $_SESSION['usuario_nome']     = $usuarioAtualizado->nome;
         $_SESSION['usuario_supplier'] = $usuarioAtualizado->isSupplier;
-        $_SESSION['usuario_admin'] = $usuarioAtualizado->isAdmin;
-        $_SESSION['sucesso_perfil'] = 'Perfil atualizado com sucesso!';
+        $_SESSION['usuario_admin']    = $usuarioAtualizado->isAdmin;
+        $_SESSION['sucesso_perfil']   = 'Dados atualizados com sucesso!';
         header('Location: profile_page.php');
         exit;
+    }
+
+    /** Troca de senha isolada: exige a senha atual (re-autenticação). */
+    public function alterarSenha(): void {
+        if (empty($_SESSION['usuario_id'])) {
+            $_SESSION['erro_senha'] = 'Faça login para alterar a senha.';
+            header('Location: login_page.php');
+            exit;
+        }
+
+        $id = (int) $_SESSION['usuario_id'];
+        $usuario = $this->dao->buscarPorId($id);
+        if (!$usuario) {
+            $this->erroPerfil('Usuário não encontrado.', 'erro_senha');
+        }
+
+        $atual   = $_POST['senha_atual'] ?? '';
+        $nova    = $_POST['senha'] ?? '';
+        $confirm = $_POST['senha_confirm'] ?? '';
+
+        if (!$atual || !$nova || !$confirm)              $this->erroPerfil('Preencha todos os campos de senha.', 'erro_senha');
+        if (!password_verify($atual, $usuario->senha))   $this->erroPerfil('Senha atual incorreta.', 'erro_senha');
+        if (strlen($nova) < 6)                           $this->erroPerfil('A nova senha deve ter pelo menos 6 caracteres.', 'erro_senha');
+        if ($nova !== $confirm)                          $this->erroPerfil('A confirmação não coincide com a nova senha.', 'erro_senha');
+        if (password_verify($nova, $usuario->senha))     $this->erroPerfil('A nova senha deve ser diferente da atual.', 'erro_senha');
+
+        $this->dao->atualizar($id, $usuario->email, senhaHash: password_hash($nova, PASSWORD_BCRYPT));
+        $_SESSION['sucesso_senha'] = 'Senha alterada com sucesso!';
+        header('Location: profile_page.php');
+        exit;
+    }
+
+    /** Atualiza o cartão de forma isolada. Guarda apenas os 4 últimos dígitos, mascarados. */
+    public function atualizarCartao(): void {
+        if (empty($_SESSION['usuario_id'])) {
+            $_SESSION['erro_cartao'] = 'Faça login para atualizar o cartão.';
+            header('Location: login_page.php');
+            exit;
+        }
+
+        $id = (int) $_SESSION['usuario_id'];
+        $usuario = $this->dao->buscarPorId($id);
+        if (!$usuario) {
+            $this->erroPerfil('Usuário não encontrado.', 'erro_cartao');
+        }
+
+        $digitos = preg_replace('/\D/', '', $_POST['cartaocredito'] ?? '');
+        if ($digitos === '')       $this->erroPerfil('Informe o número do cartão.', 'erro_cartao');
+        if (strlen($digitos) < 4)  $this->erroPerfil('Número de cartão inválido.', 'erro_cartao');
+
+        $this->dao->atualizar($id, $usuario->email, cartaocredito: '•••• ' . substr($digitos, -4));
+        $_SESSION['sucesso_cartao'] = 'Cartão atualizado com sucesso!';
+        header('Location: profile_page.php');
+        exit;
+    }
+
+    private function erroPerfil(string $mensagem, string $chave = 'erro_perfil'): never {
+        $_SESSION[$chave] = $mensagem;
+        header('Location: profile_page.php');
+        exit;
+    }
+
+    /** Validação de CPF (dígitos verificadores). */
+    private static function cpfValido(string $cpf): bool {
+        $cpf = preg_replace('/\D/', '', $cpf);
+        if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
+            return false;
+        }
+        for ($t = 9; $t < 11; $t++) {
+            $soma = 0;
+            for ($i = 0; $i < $t; $i++) {
+                $soma += (int) $cpf[$i] * (($t + 1) - $i);
+            }
+            $digito = ((10 * $soma) % 11) % 10;
+            if ((int) $cpf[$t] !== $digito) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private function iniciarSessao(object $usuario): void {

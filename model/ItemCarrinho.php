@@ -34,7 +34,4 @@ class ItemCarrinho {
         return 'R$ ' . number_format($this->subtotal(), 2, ',', '.');
     }
 
-    public function precoFormatado(): string {
-        return 'R$ ' . number_format($this->produtoPreco, 2, ',', '.');
-    }
 }

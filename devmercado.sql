@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     email VARCHAR(255) NOT NULL UNIQUE,
     is_supplier BOOLEAN DEFAULT false NOT NULL,
     is_admin BOOLEAN DEFAULT false NOT NULL,
+    is_deleted BOOLEAN DEFAULT false NOT NULL,
     telefone VARCHAR(255) NOT NULL,
     cartaocredito VARCHAR(255) NOT NULL,
     endereco TEXT DEFAULT '' NOT NULL,
@@ -15,6 +16,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false NOT NULL;
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco TEXT DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false NOT NULL;
+
+-- Documento (CPF) e endereço estruturado (padrão e-commerce). O campo legado
+-- 'endereco' continua existindo e é preenchido com o endereço composto, para
+-- manter compatibilidade com o checkout e a exibição de pedidos.
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cpf VARCHAR(14) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cep VARCHAR(9) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco_logradouro VARCHAR(255) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco_numero VARCHAR(20) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco_complemento VARCHAR(100) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco_bairro VARCHAR(120) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco_cidade VARCHAR(120) DEFAULT '' NOT NULL;
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco_uf VARCHAR(2) DEFAULT '' NOT NULL;
 
 CREATE TABLE IF NOT EXISTS produtos (
     id SERIAL PRIMARY KEY,
@@ -32,12 +46,21 @@ CREATE TABLE IF NOT EXISTS produtos (
 CREATE TABLE IF NOT EXISTS pedidos (
     id SERIAL PRIMARY KEY,
     comprador_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    status VARCHAR(30) DEFAULT 'preparacao' NOT NULL 
-        CHECK (status IN ('preparacao', 'transito', 'saiu', 'entregue')),
+    status VARCHAR(30) DEFAULT 'preparacao' NOT NULL
+        CHECK (status IN ('preparacao', 'transito', 'saiu', 'entregue', 'cancelado')),
     data_estimada DATE,
+    data_envio DATE,
+    data_cancelamento DATE,
     total NUMERIC(10,2) DEFAULT 0 NOT NULL,
     criado_em TIMESTAMP DEFAULT now()
 );
+
+-- Migrações idempotentes para bancos já existentes
+ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS data_envio DATE;
+ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS data_cancelamento DATE;
+ALTER TABLE pedidos DROP CONSTRAINT IF EXISTS pedidos_status_check;
+ALTER TABLE pedidos ADD CONSTRAINT pedidos_status_check
+    CHECK (status IN ('preparacao', 'transito', 'saiu', 'entregue', 'cancelado'));
 
 CREATE TABLE IF NOT EXISTS itens_pedido (
     id SERIAL PRIMARY KEY,
@@ -60,7 +83,8 @@ CREATE TABLE IF NOT EXISTS carrinho (
 -- Dados iniciais
 INSERT INTO usuarios (nome, email, senha, is_supplier, is_admin, telefone, cartaocredito, endereco, criado_em) VALUES
 ('Douglas Biazus', 'douglasb50041@gmail.com', '$2y$10$cESMRlLYpfjTjnw/a/zTN.BItuhegzoS2En.PzDmgfzgPTeUbgzZi', true, true, '000', '000', '', '2026-04-30 18:39:09'),
-('Comprador', 'comprador@gmail.com', '$2y$10$UEauhhqyII/aEw/mk.ER.eGZWQ8OYQW8RJs6lMyE/1pkaqFX/t9YC', false, false, '000', '000', '', '2026-04-30 18:39:44')
+('Comprador', 'comprador@gmail.com', '$2y$10$UEauhhqyII/aEw/mk.ER.eGZWQ8OYQW8RJs6lMyE/1pkaqFX/t9YC', false, false, '000', '000', '', '2026-04-30 18:39:44'),
+('Admin', 'admin@gmail.com', '$2y$10$kJNG.pkCNz0vMCk6oi0r8.MgpfeikwAbbBmjg.Vrk2mf/8tm.HXTm', false, true, '000', '000', '', '2026-06-21 00:00:00')
 ON CONFLICT (email) DO NOTHING;
 
 -- Inserção do produto com foto_url
@@ -134,3 +158,9 @@ VALUES
 (57, 1, 'Gabinete Pichau Gaming', 'Gabinete com 4 fans ARGB', 399.90, 35, 'Gabinete', '', '2026-04-30 20:12:45'),
 (58, 1, 'Cooler Deepcool AK400', 'Cooler Air para CPU 220W TDP', 219.90, 28, 'Refrigeração', '', '2026-04-30 20:12:45')
 ON CONFLICT (id) DO NOTHING;
+
+-- Ressincroniza a sequência de IDs após os INSERTs com id explícito acima.
+-- Sem isto, o próximo cadastro de produto (sem id) reaproveitaria valores baixos
+-- e colidiria com os IDs já existentes (duplicate key em produtos_pkey).
+SELECT setval('produtos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM produtos));
+SELECT setval('usuarios_id_seq', (SELECT COALESCE(MAX(id), 1) FROM usuarios));

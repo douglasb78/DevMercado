@@ -6,10 +6,10 @@
     flex: 1;
 }
 .home-banner {
-    background: #0a5a9c;
+    background: var(--ml-azul);
     color: white;
     padding: 48px 36px;
-    border: 1px solid #003a6a;
+    border-radius: var(--ml-raio);
     text-align: center;
 }
 .home-banner h2 {
@@ -25,7 +25,7 @@
 .home-banner a {
     display: inline-block;
     background: white;
-    color: #004d8e;
+    color: var(--ml-azul);
     padding: 12px 32px;
     text-decoration: none;
     font-weight: 700;
@@ -36,11 +36,10 @@
 .home-banner a:hover { background: #e8f4ff; }
 
 .home-section-title {
-    color: white;
+    color: var(--ml-texto);
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .home-grid {
@@ -50,7 +49,9 @@
 }
 .home-produto-card {
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid var(--ml-borda);
+    border-radius: var(--ml-raio);
+    box-shadow: var(--ml-sombra);
     padding: 12px;
     text-align: center;
     cursor: pointer;
@@ -79,7 +80,7 @@
     margin-bottom: 6px;
 }
 .home-produto-card .preco {
-    font-size: 1.05rem;
-    font-weight: bold;
-    color: #0066cc;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ml-texto);
 }

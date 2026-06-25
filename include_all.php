@@ -1,5 +1,9 @@
 <?php
+require_once __DIR__ . '/model/Endereco.php';
 require_once __DIR__ . '/model/Usuario.php';
+require_once __DIR__ . '/model/Cliente.php';
+require_once __DIR__ . '/model/Fornecedor.php';
+require_once __DIR__ . '/model/Estoque.php';
 require_once __DIR__ . '/model/Produto.php';
 require_once __DIR__ . '/model/Pedido.php';
 require_once __DIR__ . '/model/ItemPedido.php';

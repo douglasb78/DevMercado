@@ -1,0 +1,185 @@
+.navbar {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	gap: 1rem;
+	padding: 12px;
+	box-sizing: border-box;
+	flex-shrink: 0;
+	background-color: var(--ml-amarelo);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.nav-links {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
+/* A faixa de links que contém a busca não quebra internamente: se faltar
+   espaço, a barra de pesquisa encolhe em vez de jogar um botão para a
+   linha de baixo. */
+.navbar > .nav-links:first-of-type {
+	flex: 0 1 auto;
+	min-width: 0;
+	flex-wrap: nowrap;
+}
+
+.navbar h1 {
+	font-size: 2rem;
+	color: var(--ml-texto);
+	font-family: "Poppins", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar button {
+	border-radius: var(--ml-raio);
+	padding: 0 18px;
+	background: var(--ml-azul);
+	color: #fff;
+	border: none;
+	cursor: pointer;
+	font-size: 0.85rem;
+}
+.navbar button:hover {
+	background: var(--ml-azul-escuro);
+}
+
+.nav-links a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	color: var(--ml-texto);
+	text-align: center;
+	background: transparent;
+	border: none;
+	text-decoration: none;
+	transition: background 0.2s;
+	padding: 8px 12px;
+	line-height: 1.2;
+	border-radius: var(--ml-raio);
+	font-family: "Poppins", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-size: 0.85rem;
+	white-space: nowrap;
+}
+
+.nav-links a:hover {
+	color: var(--ml-texto);
+	background: rgba(0, 0, 0, 0.08);
+}
+
+.nav-links a#my_store {
+	color: var(--ml-azul);
+	font-weight: 600;
+}
+
+.nav-links a#my_store:hover {
+	background: rgba(52, 131, 250, 0.12);
+}
+
+.search-bar {
+	flex: 1 1 460px;
+	min-width: 220px;
+	max-width: 560px;
+	display: flex;
+	position: relative;
+}
+
+.search-bar input {
+	flex: 1 1 auto;
+	min-width: 0;
+	background: #fff;
+	border: 1px solid var(--ml-borda);
+	padding: 10px 16px;
+	margin-right: 6px;
+	border-radius: var(--ml-raio);
+	font-size: 0.9rem;
+}
+
+@media (max-width: 992px) {
+	.navbar {
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	/* No mobile o grupo da busca PODE quebrar em várias linhas: a busca ocupa
+	   uma linha inteira e os demais links se distribuem centralizados abaixo,
+	   em vez de estourar a largura na horizontal. */
+	.navbar > .nav-links:first-of-type {
+		flex: 1 1 auto;
+		width: 100%;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.nav-links {
+		width: 100%;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+
+	.search-bar {
+		order: -1;
+		flex: 1 1 100%;
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	.search-bar input {
+		height: 2.5rem;
+		line-height: 2.5rem;
+		min-width: 0;
+	}
+
+	.nav-links a {
+		text-align: center;
+		height: 2.5rem;
+		line-height: 2.5rem;
+	}
+}
+
+/* Autocomplete da busca (antes em <style> no navbar_widget.php) */
+.search-suggestions {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	right: 0;
+	z-index: 10050;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 10px;
+	box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+	max-height: 400px;
+	overflow: hidden auto;
+	display: none;
+}
+/* Itens da sugestão: resetam o estilo herdado de .nav-links a (fundo azul/pílula). */
+.search-suggestions .ss-item {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 12px;
+	padding: 10px 12px;
+	min-width: 0;
+	min-height: 0;
+	background: #fff;
+	color: #222;
+	text-align: left;
+	border: none;
+	border-bottom: 1px solid #eee;
+	border-radius: 0;
+	text-decoration: none;
+	transition: background .15s;
+}
+.search-suggestions .ss-item:last-child { border-bottom: none; }
+.search-suggestions .ss-item:hover,
+.search-suggestions .ss-item.ss-active { background: #eef3ff; color: #222; }
+.search-suggestions .ss-item img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; flex: none; border: 1px solid #eee; background: #fafafa; }
+.search-suggestions .ss-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.search-suggestions .ss-nome { font-weight: 600; font-size: .9rem; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-suggestions .ss-cat { font-size: .75rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-suggestions .ss-preco { font-size: .85rem; font-weight: 700; color: #00a650; white-space: nowrap; text-align: right; }
+.search-suggestions .ss-stock { display: block; font-size: .7rem; color: #c00; font-weight: 400; text-align: right; }
+.search-suggestions .ss-empty { padding: 14px; color: #777; font-size: .85rem; text-align: center; }

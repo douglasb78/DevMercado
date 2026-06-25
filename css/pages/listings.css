@@ -1,4 +1,4 @@
-#products_page {
+#products-page {
   width: 70vw;
   margin: 0 auto;
   display: flex;
@@ -6,21 +6,21 @@
   padding: 20px;
   background: #eee;
   min-height: 90%;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   flex-grow: 1;
 }
 
 .sidebar {
   width: 260px;
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 20px;
   height: fit-content;
 }
 .sidebar h2 {
   margin: 0 0 15px 0;
   padding-bottom: 10px;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--ml-borda);
 }
 .categoria {
   display: block;
@@ -34,7 +34,7 @@
   background: #f0f0f0;
 }
 .categoria.active {
-  background: #0066cc;
+  background: var(--ml-azul);
   color: white;
   font-weight: bold;
 }
@@ -45,7 +45,7 @@
 
 .header {
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 15px 20px;
   margin-bottom: 20px;
   display: flex;
@@ -60,11 +60,37 @@
 }
 
 .produto-card {
+  position: relative;
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
+  border-radius: var(--ml-raio);
+  box-shadow: var(--ml-sombra);
   padding: 12px;
   text-align: center;
   transition: all 0.2s;
+}
+
+/* Produto sem estoque (estoque ZERO => indisponível) */
+.produto-card.indisponivel img {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+.produto-card.indisponivel .preco {
+  color: #999;
+}
+.badge-indisponivel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+  background: #c00;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 .produto-card:hover {
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -85,15 +111,12 @@
   overflow: hidden;
 }
 .preco {
-  font-size: 18px;
-  font-weight: bold;
-  color: #0066cc;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--ml-texto);
   margin: 8px 0;
 }
-.frete {
-  font-size: 13px;
-  color: #00a650;
-}
+
 .estoque-disponivel {
   font-size: 13px;
   color: #00a650;
@@ -112,7 +135,7 @@
 .paginacao button, .paginacao a {
   padding: 10px 16px;
   margin: 0 4px;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: white;
   cursor: pointer;
   color: #222;
@@ -123,18 +146,23 @@
   background: #f0f0f0;
 }
 .paginacao .active {
-  background: #0066cc;
+  background: var(--ml-azul);
   color: white;
-  border-color: #0066cc;
+  border-color: var(--ml-azul);
 }
 
 
 @media (max-width: 700px) {
-	#products_page {
+	#products-page {
 	  width: unset;
 	  flex-direction: column;
 	}
 	.sidebar {
 		width: unset;
 	}
+}
+
+/* Estado vazio dentro do grid (antes inline) */
+.produtos-grid .estado-vazio {
+  grid-column: 1 / -1;
 }

@@ -24,7 +24,7 @@ $id = 'thumbc_' . bin2hex(random_bytes(6));
 </div>
 
 
-<link rel="stylesheet" href="/template/css/thumb_carroussel.css">
+<link rel="stylesheet" href="/css/components/thumb_carroussel.css">
 
 <script>
 (function(){

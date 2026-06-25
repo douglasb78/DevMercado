@@ -1,165 +1,127 @@
 <?php
-/*
-    API de pedido jeito novo de usar
-
-    agora a ideia e chamar pelo caminho da URL sem jogar parametro jogado no final
-
-    exemplo:
-
-    - buscar pedido pelo id:
-      /api/pedidos/562334
-
-    - mesma coisa, so que com mais curto:
-      /api/lista/562334
-
-    - buscar pedidos pelo nome do cliente:
-      /api/pedidos/cliente/Maria
-      /api/cliente/Maria
-
-    - listar varios pedidos com paginacao:
-      /api/pedidos/lista/50/0
-      nesse caso 50 = limite e 0 = offset
-
-    - listar usando o padrao:
-      /api/pedidos
-      /api/lista
-*/
 require_once __DIR__ . '/../dao/Database.php';
 require_once __DIR__ . '/../dao/PedidoDAO.php';
 require_once __DIR__ . '/../dao/ProdutoDAO.php';
 require_once __DIR__ . '/../dao/UsuarioDAO.php';
 require_once __DIR__ . '/../model/Pedido.php';
 
-// Ligar e desligar a API de pedidos:
+# Ligar e desligar a API de pedidos:
+
 $PEDIDOS_API_ENABLED = true;
 
-function responderJson(array $payload, int $status = 200): never {
-    http_response_code($status);
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+# Bloquear acesso se estiver desativada:
+if (!$PEDIDOS_API_ENABLED) {
+    http_response_code(404);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'API desabilitada']);
     exit;
 }
 
-function segmentoUrl(string $segmento): string {
-    return trim(urldecode($segmento));
+# API:
+header('Content-Type: application/json; charset=utf-8');
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Método não permitido.']);
+    exit;
 }
 
-function segmentosApi(): array {
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
-    $segmentos = array_values(array_filter(explode('/', trim($path, '/')), 'strlen'));
-    $apiIndex = array_search('api', $segmentos, true);
+# Autenticação: a API usa a sessão do navegador. Um plugin REST do navegador
+# compartilha o cookie de sessão, então o usuário precisa estar logado no site.
+session_start();
+$uid        = (int) ($_SESSION['usuario_id'] ?? 0);
+$isAdmin    = !empty($_SESSION['usuario_admin']);
+$isSupplier = !empty($_SESSION['usuario_supplier']);
 
-    if ($apiIndex !== false) {
-        $segmentos = array_slice($segmentos, $apiIndex + 1);
-    }
-
-    if (($segmentos[0] ?? '') === 'pedidos.php') {
-        array_shift($segmentos);
-    }
-
-    return array_map('segmentoUrl', $segmentos);
+if (!$uid) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Não autenticado. Faça login para consultar pedidos.']);
+    exit;
 }
 
-function rotaDaUrl(): ?array {
-    $segmentos = segmentosApi();
+$pdo = Database::getInstance();
+$pedidoDao = new PedidoDAO();
+$produtoDao = new ProdutoDAO();
+$usuarioDao = new UsuarioDAO();
 
-    if (empty($segmentos)) {
-        return ['acao' => 'listar', 'limit' => 50, 'offset' => 0];
+$id = null;
+if (isset($_GET['id'])) { $id = (int) $_GET['id']; }
+elseif (isset($_GET['numero'])) { $id = (int) $_GET['numero']; }
+
+$cliente = null;
+if (isset($_GET['cliente'])) { $cliente = trim($_GET['cliente']); }
+elseif (isset($_GET['nome'])) { $cliente = trim($_GET['nome']); }
+
+if ($id) {
+    $pedido = $pedidoDao->buscarPorId($id);
+    if (!$pedido) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Pedido não encontrado']);
+        exit;
     }
 
-    $recurso = strtolower($segmentos[0]);
-    $valor = $segmentos[1] ?? null;
-
-    if (in_array($recurso, ['pedido', 'pedidos'], true)) {
-        if ($valor === null || $valor === '' || $valor === 'lista') {
-            return [
-                'acao' => 'listar',
-                'limit' => isset($segmentos[2]) ? max(1, (int) $segmentos[2]) : 50,
-                'offset' => isset($segmentos[3]) ? max(0, (int) $segmentos[3]) : 0,
-            ];
-        }
-
-        if ($valor === 'cliente' && isset($segmentos[2])) {
-            return ['acao' => 'cliente', 'cliente' => $segmentos[2]];
-        }
-
-        if (ctype_digit($valor)) {
-            return ['acao' => 'buscar', 'id' => (int) $valor];
-        }
+    # Autorização: admin vê qualquer pedido; o cliente vê apenas os próprios;
+    # o fornecedor vê apenas pedidos que contenham itens fornecidos por ele.
+    $ehDono       = $pedido->compradorId === $uid;
+    $ehFornecedor = $isSupplier && $pedidoDao->pedidoPertenceAoFornecedor($id, $uid);
+    if (!$isAdmin && !$ehDono && !$ehFornecedor) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Você não tem permissão para consultar este pedido.']);
+        exit;
     }
 
-    if ($recurso === 'lista') {
-        if ($valor !== null && ctype_digit($valor)) {
-            return ['acao' => 'buscar', 'id' => (int) $valor];
-        }
+    $comprador = $usuarioDao->buscarPorId($pedido->compradorId);
+    $compradorNome = $comprador ? $comprador->nome : ($pedido->compradorNome ?? '');
 
-        return [
-            'acao' => 'listar',
-            'limit' => isset($segmentos[1]) ? max(1, (int) $segmentos[1]) : 50,
-            'offset' => isset($segmentos[2]) ? max(0, (int) $segmentos[2]) : 0,
-        ];
-    }
-
-    if (in_array($recurso, ['cliente', 'clientes'], true) && $valor !== null) {
-        return ['acao' => 'cliente', 'cliente' => $valor];
-    }
-
-    return null;
-}
-
-function itensDoPedidoParaJson(Pedido $pedido, ProdutoDAO $produtoDao): array {
     $itens = $pedido->itens;
     $prodIds = array_values(array_unique(array_map(fn($it) => $it->produtoId, $itens)));
     $produtos = $produtoDao->listarPorIds($prodIds);
     $prodIndex = [];
-
-    foreach ($produtos as $p) {
-        $prodIndex[$p->id] = $p;
-    }
+    foreach ($produtos as $p) { $prodIndex[$p->id] = $p; }
 
     $itensOut = [];
     foreach ($itens as $it) {
         $p = $prodIndex[$it->produtoId] ?? null;
         $itensOut[] = [
             'produto_id' => $it->produtoId,
-            'nome' => $it->produtoNome ?: ($p ? $p->nome : ''),
+            'nome'       => $it->produtoNome ?: ($p ? $p->nome : ''),
             'fornecedor' => $p ? $p->fornecedorNome : null,
-            'preco' => $it->precoUnit,
+            'preco'      => $it->precoUnit,
             'quantidade' => $it->quantidade,
-            'foto' => $p ? ($p->fotoUrl ?: $it->produtoFoto) : $it->produtoFoto,
-            'descricao' => $p ? $p->descricao : '',
+            'foto'       => $p ? ($p->fotoUrl ?: $it->produtoFoto) : $it->produtoFoto,
+            'descricao'  => $p ? $p->descricao : '',
         ];
     }
 
-    return $itensOut;
+    $out = [
+        'id'                => $pedido->id,
+        'comprador_nome'    => $compradorNome,
+        'status'            => $pedido->status,
+        'status_label'      => $pedido->statusLabel(),
+        'data_estimada'     => $pedido->dataEstimadaFormatada(),
+        'data_envio'        => $pedido->dataEnvioFormatada(),
+        'data_cancelamento' => $pedido->dataCancelamentoFormatada(),
+        'criado_em'         => $pedido->dataCompraFormatada(),
+        'total'             => $pedido->total,
+        'total_formatado'   => $pedido->totalFormatado(),
+        'itens'             => $itensOut,
+    ];
+
+    echo json_encode($out, JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-function responderPedidoPorId(int $id, PedidoDAO $pedidoDao, ProdutoDAO $produtoDao, UsuarioDAO $usuarioDao): never {
-    $pedido = $pedidoDao->buscarPorId($id);
-    if (!$pedido) {
-        responderJson(['error' => 'Pedido nao encontrado'], 404);
-    }
-
-    $comprador = $usuarioDao->buscarPorId($pedido->compradorId);
-    $compradorNome = $comprador ? $comprador->nome : ($pedido->compradorNome ?? '');
-
-    responderJson([
-        'id' => $pedido->id,
-        'comprador_nome' => $compradorNome,
-        'status' => $pedido->status,
-        'data_estimada' => $pedido->dataEstimadaFormatada(),
-        'criado_em' => $pedido->dataCompraFormatada(),
-        'total' => $pedido->total,
-        'total_formatado' => $pedido->totalFormatado(),
-        'itens' => itensDoPedidoParaJson($pedido, $produtoDao),
-    ]);
+# As consultas que enumeram pedidos (por nome do cliente ou listagem geral) são
+# restritas à administração da loja (Ator Interno: admin), pois percorrem pedidos
+# de todos os clientes/fornecedores.
+if (!$isAdmin) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Apenas a administração da loja pode listar pedidos por cliente.']);
+    exit;
 }
 
-function responderPedidosPorCliente(
-    string $cliente,
-    PDO $pdo,
-    PedidoDAO $pedidoDao,
-    ProdutoDAO $produtoDao
-): never {
+# Busca por nome do cliente
+if ($cliente) {
     $stmt = $pdo->prepare(
         'SELECT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco
            FROM pedidos p
@@ -175,87 +137,79 @@ function responderPedidosPorCliente(
         $pedido = new Pedido($row);
         $pedido->itens = $pedidoDao->listarItensDoPedido($pedido->id);
 
+        $prodIds = array_values(array_unique(array_map(fn($it) => $it->produtoId, $pedido->itens)));
+        $produtos = $produtoDao->listarPorIds($prodIds);
+        $prodIndex = [];
+        foreach ($produtos as $p) { $prodIndex[$p->id] = $p; }
+
+        $itensOut = [];
+        foreach ($pedido->itens as $it) {
+            $p = $prodIndex[$it->produtoId] ?? null;
+            $itensOut[] = [
+                'produto_id' => $it->produtoId,
+                'nome'       => $it->produtoNome ?: ($p ? $p->nome : ''),
+                'fornecedor' => $p ? $p->fornecedorNome : null,
+                'preco'      => $it->precoUnit,
+                'quantidade' => $it->quantidade,
+                'foto'       => $p ? ($p->fotoUrl ?: $it->produtoFoto) : $it->produtoFoto,
+                'descricao'  => $p ? $p->descricao : '',
+            ];
+        }
+
         $result[] = [
-            'id' => $pedido->id,
+            'id'             => $pedido->id,
             'comprador_nome' => $row['comprador_nome'] ?? '',
-            'status' => $pedido->status,
-            'criado_em' => $pedido->dataCompraFormatada(),
-            'total' => $pedido->total,
-            'itens' => itensDoPedidoParaJson($pedido, $produtoDao),
+            'status'         => $pedido->status,
+            'criado_em'      => $pedido->dataCompraFormatada(),
+            'total'          => $pedido->total,
+            'itens'          => $itensOut,
         ];
     }
 
-    responderJson(['pedidos' => $result]);
+    echo json_encode(['pedidos' => $result], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-function responderListaPedidos(
-    int $limit,
-    int $offset,
-    PedidoDAO $pedidoDao,
-    ProdutoDAO $produtoDao,
-    UsuarioDAO $usuarioDao
-): never {
+# Ter limite e offset na API:
+if (isset($_GET['all'])) {
+    $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 50;
+    $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
     $pedidos = $pedidoDao->listarTodosPaginado($limit, $offset);
 
     $outArr = [];
     foreach ($pedidos as $pedido) {
-        $comprador = $pedido->compradorNome ? null : $usuarioDao->buscarPorId($pedido->compradorId);
-        $compradorNome = $pedido->compradorNome ?: ($comprador->nome ?? '');
+        $compradorNome = $pedido->compradorNome ?: ($usuarioDao->buscarPorId($pedido->compradorId)->nome ?? '');
+
+        $prodIds = array_values(array_unique(array_map(fn($it) => $it->produtoId, $pedido->itens)));
+        $produtos = $produtoDao->listarPorIds($prodIds);
+        $prodIndex = [];
+        foreach ($produtos as $p) { $prodIndex[$p->id] = $p; }
+
+        $itensOut = [];
+        foreach ($pedido->itens as $it) {
+            $p = $prodIndex[$it->produtoId] ?? null;
+            $itensOut[] = [
+                'produto_id' => $it->produtoId,
+                'nome'       => $it->produtoNome ?: ($p ? $p->nome : ''),
+                'fornecedor' => $p ? $p->fornecedorNome : null,
+                'preco'      => $it->precoUnit,
+                'quantidade' => $it->quantidade,
+                'foto'       => $p ? ($p->fotoUrl ?: $it->produtoFoto) : $it->produtoFoto,
+                'descricao'  => $p ? $p->descricao : '',
+            ];
+        }
 
         $outArr[] = [
             'id' => $pedido->id,
             'comprador_nome' => $compradorNome,
-            'itens' => itensDoPedidoParaJson($pedido, $produtoDao),
+            'itens' => $itensOut,
         ];
     }
 
-    responderJson([
-        'pedidos' => $outArr,
-        'paginacao' => [
-            'limit' => $limit,
-            'offset' => $offset,
-        ],
-    ]);
+    echo json_encode(['pedidos' => $outArr], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-if (!$PEDIDOS_API_ENABLED) {
-    header('Content-Type: application/json; charset=utf-8');
-    responderJson(['error' => 'API desabilitada'], 404);
-}
-
-header('Content-Type: application/json; charset=utf-8');
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    responderJson(['error' => 'Metodo nao permitido'], 405);
-}
-
-$pdo = Database::getInstance();
-$pedidoDao = new PedidoDAO();
-$produtoDao = new ProdutoDAO();
-$usuarioDao = new UsuarioDAO();
-
-$rota = rotaDaUrl();
-
-if (!$rota) {
-    responderJson([
-        'error' => 'Rota invalida',
-        'exemplos' => [
-            '/api/pedidos/562334',
-            '/api/lista/562334',
-            '/api/pedidos/cliente/Maria',
-            '/api/pedidos/lista/50/0',
-        ],
-    ], 400);
-}
-
-switch ($rota['acao']) {
-    case 'buscar':
-        responderPedidoPorId($rota['id'], $pedidoDao, $produtoDao, $usuarioDao);
-
-    case 'cliente':
-        responderPedidosPorCliente($rota['cliente'], $pdo, $pedidoDao, $produtoDao);
-
-    case 'listar':
-        responderListaPedidos($rota['limit'], $rota['offset'], $pedidoDao, $produtoDao, $usuarioDao);
-}
-
-responderJson(['error' => 'Rota invalida'], 400);
+http_response_code(400);
+echo json_encode(['error' => 'Parâmetros inválidos. Use id/numero ou cliente/nome ou all=1.']);
+exit;

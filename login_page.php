@@ -9,11 +9,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 ob_start();
 ?>
-<link rel="stylesheet" href="/css/login_register_page.css">
+<link rel="stylesheet" href="/css/pages/login_register.css">
 <div class="login-container">
     <h2>Entrar:</h2>
 
-    <p id="auth_error" style="color:red;margin-bottom:12px;"><?= !empty($_SESSION['auth_erro']) ? htmlspecialchars($_SESSION['auth_erro']) : '' ?></p>
+    <p id="auth_error" class="msg-erro"><?= !empty($_SESSION['auth_erro']) ? htmlspecialchars($_SESSION['auth_erro']) : '' ?></p>
     <?php unset($_SESSION['auth_erro']); ?>
 
     <form id="login-form" method="POST">

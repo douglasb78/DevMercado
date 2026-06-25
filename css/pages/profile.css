@@ -1,8 +1,10 @@
 .profile-container {
 	background-color: white;
 	padding: 40px;
-	border: 1px solid #444;
-	max-width: 700px;
+	border: 1px solid var(--ml-borda);
+	border-radius: var(--ml-raio);
+	box-shadow: var(--ml-sombra);
+	max-width: 1040px;
 	margin: auto;
 	min-width: 30%;
 }
@@ -39,7 +41,7 @@
 
 .form-group input:focus {
 	outline: none;
-	border-color: #0066cc;
+	border-color: var(--ml-azul);
 	box-shadow: 0 0 5px rgba(0, 102, 204, 0.2);
 }
 
@@ -92,12 +94,12 @@
 }
 
 .btn-salvar {
-	background-color: #0066cc;
+	background-color: var(--ml-azul);
 	color: white;
 }
 
 .btn-salvar:hover {
-	background-color: #0052a3;
+	background-color: var(--ml-azul-escuro);
 }
 
 .btn-cancelar {
@@ -117,7 +119,59 @@
 	font-size: 0.95rem;
 }
 
+/* ── Layout em duas colunas ───────────────────────────────────────────── */
+.perfil-header {
+	margin-bottom: 24px;
+}
+
+.perfil-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 24px;
+	align-items: start;
+}
+
+.perfil-grid .profile-form {
+	margin-bottom: 0;
+}
+
+.perfil-col,
+.perfil-col-esq,
+.perfil-col-dir {
+	min-width: 0;
+}
+
+.perfil-col-dir {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.perfil-secao {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 18px 22px;
+	margin: 0 0 20px;
+	background: #fff;
+	min-width: 0;
+}
+
+.perfil-col-dir .perfil-secao {
+	margin: 0;
+}
+
+.perfil-secao legend {
+	font-weight: 600;
+	font-size: 1.05rem;
+	color: #333;
+	padding: 0 6px;
+}
+
 @media (max-width: 992px) {
+	.perfil-grid {
+		grid-template-columns: 1fr;
+	}
+
 	.profile-container {
 		max-width: 100%;
 		padding: 20px;
@@ -146,4 +200,9 @@
 		flex-direction: column;
 		gap: 10px;
 	}
+}
+
+/* Estilo antes inline */
+#endereco_uf {
+	text-transform: uppercase;
 }

@@ -1,0 +1,201 @@
+:root {
+	--ml-amarelo: #ffe600;
+	--ml-azul: #3483fa;
+	--ml-azul-escuro: #2968c8;
+	--ml-verde: #00a650;
+	--ml-texto: rgba(0, 0, 0, .9);
+	--ml-texto-suave: rgba(0, 0, 0, .55);
+	--ml-fundo: #ebebeb;
+	--ml-card: #fff;
+	--ml-borda: #e0e0e0;
+	--ml-raio: 6px;
+	--ml-sombra: 0 1px 2px rgba(0, 0, 0, .1);
+	--ml-sombra-hover: 0 4px 16px rgba(0, 0, 0, .12);
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
+	background: var(--ml-fundo);
+	color: var(--ml-texto);
+}
+
+body * {
+	font-size: 1.06rem;
+	font-family: "Poppins", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+button {
+	padding: 8px 12px;
+	border: 1px solid var(--ml-borda);
+	border-radius: var(--ml-raio);
+	background: white;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+button:hover {
+	background: #f0f0f0;
+}
+
+#website-content {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	padding: 24px 0;
+}
+
+#website-content h2 {
+	font-size: 1.5rem;
+	margin-bottom: 0.5rem;
+}
+
+@media (max-width: 992px) {
+	body {
+		padding-bottom: 20%;
+	}
+	#website-content {
+		padding: 12px 0;
+	}
+}
+
+/* ═══════════════ Utilitários compartilhados ═══════════════ */
+
+/* Mensagens de feedback */
+.msg-erro { color: #c00; margin-bottom: 12px; }
+.msg-ok   { color: #0a7d34; margin-bottom: 12px; }
+
+/* Aviso inline (exibido via JS) */
+.aviso-inline {
+	display: none;
+	margin-top: 12px;
+	padding: 12px;
+	border: 1px solid #c3e6cb;
+	background: #d4edda;
+	color: #155724;
+	font-weight: 600;
+}
+
+/* Toast flutuante (exibido via JS) */
+.toast {
+	display: none;
+	position: fixed;
+	bottom: 24px;
+	right: 24px;
+	z-index: 10001;
+	padding: 14px 24px;
+	border-radius: 4px;
+	background: #00a650;
+	color: #fff;
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado vazio (listas e grids) */
+.estado-vazio {
+	text-align: center;
+	padding: 40px;
+	color: #666;
+}
+.estado-vazio--card {
+	background: #fff;
+	border: 1px solid #ddd;
+}
+
+/* Célula de tabela vazia */
+.celula-vazia {
+	text-align: center;
+	padding: 30px;
+	color: #666;
+}
+
+/* Link sem sublinhado, herdando a cor do contexto */
+.link-limpo {
+	text-decoration: none;
+	color: inherit;
+}
+
+/* ─── Modal genérico ─── */
+.modal-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10000;
+	background: rgba(0, 0, 0, 0.5);
+	justify-content: center;
+	align-items: center;
+	padding: 20px;
+}
+.modal-overlay.aberto { display: flex; }
+.modal-janela {
+	background: #fff;
+	padding: 30px;
+	border-radius: 8px;
+	width: 90%;
+	max-width: 500px;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+.modal-janela h3 { margin-top: 0; }
+.modal-campo { margin-bottom: 15px; }
+.modal-campo label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+.modal-campo input,
+.modal-campo textarea {
+	width: 100%;
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+.modal-campo textarea { min-height: 100px; }
+.modal-acoes {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+}
+.modal-acoes button {
+	padding: 8px 16px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+.modal-acoes .btn-cancelar { background: #ccc; }
+.modal-acoes .btn-salvar { background: var(--ml-azul); color: #fff; }
+
+/* ─── Detalhe de pedido (tabela montada via JS em pedido_detalhe.js) ─── */
+.pd-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+	font-size: .9rem;
+	background: #fff;
+}
+.pd-table th,
+.pd-table td {
+	border: 1px solid #e2e2e2;
+	padding: 8px;
+	text-align: left;
+	vertical-align: middle;
+}
+.pd-table th { background: #f5f5f5; }
+.pd-table img {
+	width: 48px;
+	height: 48px;
+	object-fit: cover;
+	border-radius: 4px;
+	cursor: pointer;
+	display: block;
+}
+.pd-datas { margin: 8px 0; color: #444; font-size: .86rem; }
+.pd-loading,
+.pd-erro { padding: 14px; color: #666; text-align: center; }
+.pd-erro { color: #c00; }

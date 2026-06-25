@@ -9,8 +9,8 @@ $produto = $id ? $dao->buscarPorId($id) : null;
 ob_start();
 
 if (!$produto): ?>
-<link rel="stylesheet" href="/css/product_page.css">
-<div style="text-align:center;padding:60px;color:#fff;">
+<link rel="stylesheet" href="/css/pages/product.css">
+<div class="produto-nao-encontrado">
   <h2>Produto não encontrado.</h2>
 </div>
 
@@ -26,10 +26,11 @@ if (is_array($carrinhoCookie)) {
     $quantidadeAtualCarrinho = (int) ($carrinhoCookie[$produto->id] ?? 0);
 }
 $quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1));
+$estoque = $produto->getEstoque();
 ?>
 
-<link rel="stylesheet" href="/css/product_page.css">
-<div id="product_page">
+<link rel="stylesheet" href="/css/pages/product.css">
+<div id="product-page">
 
   <div class="product-gallery">
     <img
@@ -44,21 +45,20 @@ $quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1
 
     <div class="product-header">
       <h1><?= htmlspecialchars($produto->nome) ?> #<?= $produto->id ?></h1> 
-      Vendido por: <a href="/view_store_page.php?id=<?= $produto->fornecedorId ?>" class="vendedor" style="text-decoration:none;color:inherit;">
+      Vendido por: <a href="/view_store_page.php?id=<?= $produto->fornecedorId ?>" class="vendedor link-limpo">
         <strong><?= htmlspecialchars($produto->fornecedorNome) ?></strong>
       </a>
-      <div id="stock-info" style="margin-top:6px;font-size:0.85rem;color:<?= $produto->estoque > 0 ? '#00a650' : '#c00' ?>;">
-        <?= $produto->estoque > 0
-            ? "✓ Em estoque ({$produto->estoque} disponíveis)"
+      <div id="stock-info" class="<?= $estoque->disponivel() ? 'estoque-ok' : 'estoque-esgotado' ?>">
+        <?= $estoque->disponivel()
+            ? "✓ Em estoque ({$estoque->quantidade} disponíveis)"
             : "✗ Produto indisponível" ?>
       </div>
     </div>
 
     <div class="product-buy-box">
       <div class="preco"><?= $produto->precoFormatado() ?></div>
-      <div class="frete">Frete grátis</div>
 
-      <?php if ($produto->estoque > 0): ?>
+      <?php if ($estoque->disponivel()): ?>
         <div class="quantidade-label">Quantidade:</div>
         <div class="quantidade">
           <button type="button" onclick="alterarQuantidade(-1)">–</button>
@@ -75,7 +75,7 @@ $quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1
           Comprar Agora
         </button>
       <?php else: ?>
-        <button class="btn-comprar" disabled style="background:#aaa;cursor:not-allowed;">
+        <button class="btn-comprar" disabled>
           Produto Indisponível
         </button>
       <?php endif; ?>
@@ -89,11 +89,7 @@ $quantidadeInicial = max(1, min($produto->estoque, $quantidadeAtualCarrinho ?: 1
   </div>
 </div>
 
-</div>
-<div id="msg-carrinho" style="display:none;position:fixed;bottom:150px;right:24px;
-  background:#00a650;color:#fff;padding:14px 24px;border-radius:4px;
-  font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
-</div>
+<div id="msg-carrinho" class="toast"></div>
 
 <script>
 const estoqueMax = <?= $produto->estoque ?>;
@@ -117,7 +113,7 @@ function alterarQuantidade(valor) {
     return;
   }
 
-  const buttons = document.querySelectorAll('#product_page .product-buy-box .quantidade button');
+  const buttons = document.querySelectorAll('#product-page .product-buy-box .quantidade button');
   buttons.forEach(b => b.disabled = true);
 
   fetch('/shopping_cart_page.php', {
@@ -138,10 +134,10 @@ function alterarQuantidade(valor) {
       const el = document.getElementById('stock-info');
       if (data.estoque <= 0) {
         el.textContent = '✗ Produto indisponível';
-        el.style.color = '#c00';
+        el.className = 'estoque-esgotado';
       } else {
         el.textContent = '✓ Em estoque (' + restante + ' disponíveis)';
-        el.style.color = restante > 0 ? '#00a650' : '#c00';
+        el.className = restante > 0 ? 'estoque-ok' : 'estoque-esgotado';
       }
     }
 

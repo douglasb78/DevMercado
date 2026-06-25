@@ -1,8 +1,8 @@
-#track_orders {
+#track-orders {
   width: min(1180px, 94vw);
   margin: 0 auto;
   background: #fff;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 14px;
   flex-grow: 1;
 }
@@ -32,20 +32,17 @@
 }
 
 .empty-state a {
-  color: #0066cc;
+  color: var(--ml-azul);
 }
 
-.master-table,
-.detail-table {
+.master-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
 .master-table th,
-.master-table td,
-.detail-table th,
-.detail-table td {
+.master-table td {
   border: 1px solid #ddd;
   padding: 7px 8px;
   text-align: left;
@@ -53,8 +50,7 @@
   font-size: 0.84rem;
 }
 
-.master-table th,
-.detail-table th {
+.master-table th {
   background: #f3f3f3;
   font-weight: 600;
 }
@@ -115,7 +111,7 @@
   display: inline-block;
   min-width: 92px;
   padding: 4px 8px;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   font-size: 0.76rem;
   font-weight: 700;
   text-align: center;
@@ -128,7 +124,7 @@
 .entregue   { background-color: #d4edda; color: #155724; }
 
 .detail-toggle {
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: #fff;
   padding: 4px 8px;
   cursor: pointer;
@@ -157,7 +153,7 @@
 }
 
 .paginacao a {
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: #fff;
   color: #222;
   padding: 6px 10px;
@@ -165,8 +161,8 @@
 }
 
 .paginacao a.active {
-  background: #0066cc;
-  border-color: #0066cc;
+  background: var(--ml-azul);
+  border-color: var(--ml-azul);
   color: #fff;
 }
 
@@ -202,7 +198,7 @@
 
 .image-modal-content button {
   align-self: flex-end;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: #fff;
   padding: 6px 10px;
   cursor: pointer;
@@ -215,7 +211,7 @@
 }
 
 @media (max-width: 800px) {
-  #track_orders {
+  #track-orders {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;

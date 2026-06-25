@@ -18,6 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
+// Bloqueio de acesso: somente fornecedores logados acessam esta página.
+if (!empty($_SESSION['usuario_id']) && empty($_SESSION['usuario_supplier'])) {
+    $usuarioLogado = (new UsuarioDAO())->buscarPorId((int) $_SESSION['usuario_id']);
+    $_SESSION['usuario_supplier'] = $usuarioLogado?->isSupplier ?? false;
+}
+if (empty($_SESSION['usuario_supplier'])) {
+    if (empty($_SESSION['usuario_id'])) {
+        header('Location: login_page.php');
+    } else {
+        http_response_code(403);
+        echo 'Acesso negado.';
+    }
+    exit;
+}
+
 $produtoDao = new ProdutoDAO();
 $pedidoDao  = new PedidoDAO();
 
@@ -30,27 +45,11 @@ $offsetPedidos = ($paginaPedidos - 1) * $porPaginaPedidos;
 $totalPedidos = $pedidoDao->contarPorFornecedor($fid);
 $totalPaginasPedidos = max(1, (int) ceil($totalPedidos / $porPaginaPedidos));
 $pedidos = $pedidoDao->listarPorFornecedorPaginado($fid, $porPaginaPedidos, $offsetPedidos);
-foreach ($pedidos as $idx => $pedido) {
-    $pedido->itens = array_values(array_filter(
-        $pedido->itens,
-        fn($item) => $item->fornecedorId === $fid
-    ));
-    if (empty($pedido->itens)) {
-        unset($pedidos[$idx]);
-    }
-}
-$pedidos = array_values($pedidos);
-
-$categorias = [
-    'Eletrodomésticos', 'Celulares & Telefonia', 'Móveis',
-    'Computadores', 'Notebooks', 'Alimentos & Bebidas',
-    'Automóveis', 'Outros',
-];
 
 ob_start();
 ?>
-<link rel="stylesheet" href="/css/manage_page.css">
-<div id="manage_store">
+<link rel="stylesheet" href="/css/pages/manage.css">
+<div id="manage-store">
 
   <div class="store-header">
     <h1>Minha Loja - <?= htmlspecialchars($_SESSION['usuario_nome'] ?? '') ?></h1>
@@ -77,7 +76,7 @@ ob_start();
 
   <div class="store-panel visible" id="painel-cadastrar">
     <h2>Cadastrar Produto</h2>
-    <div id="msg-cadastrar" style="display:none;padding:10px;margin-bottom:12px;font-weight:600;"></div>
+    <div id="msg-cadastrar" class="aviso-inline"></div>
 
     <div class="form-row">
       <div>
@@ -95,7 +94,7 @@ ob_start();
         <label>Categoria</label>
         <select id="cad-categoria">
           <option value="">Selecione...</option>
-          <?php foreach ($categorias as $cat): ?>
+          <?php foreach (ProdutoController::CATEGORIAS_PERMITIDAS as $cat): ?>
             <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
           <?php endforeach; ?>
         </select>
@@ -131,7 +130,7 @@ ob_start();
     </div>
 
     <?php if (empty($pedidos)): ?>
-      <p style="color:#666;padding:20px;text-align:center;">Nenhum pedido encontrado.</p>
+      <p class="estado-vazio">Nenhum pedido encontrado.</p>
     <?php else: ?>
       <table class="compact-master-table">
         <thead>
@@ -143,20 +142,16 @@ ob_start();
             <th>Fotos</th>
             <th>Status</th>
             <th>Entrega prevista</th>
-            <th>Itens da loja</th>
+            <th>Total</th>
             <th>Ação</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($pedidos as $pedido): ?>
             <?php
-              $produtosResumoLista = array_map(
-                fn($i, $n) => 'Produto ' . ($n + 1) . ' (#' . $i->produtoId . ')',
-                $pedido->itens,
-                array_keys($pedido->itens)
-              );
-              $produtosResumo = implode(', ', array_slice($produtosResumoLista, 0, 2));
-              if (count($produtosResumoLista) > 2) $produtosResumo .= ' +' . (count($produtosResumoLista) - 2);
+              $nomes = array_map(fn($i) => $i->produtoNome, $pedido->itens);
+              $produtosResumo = implode(', ', array_slice($nomes, 0, 2));
+              if (count($nomes) > 2) $produtosResumo .= ' +' . (count($nomes) - 2);
             ?>
             <tr class="compact-master-row" onclick="toggleDetalhe('entrega-<?= $pedido->id ?>')">
               <td data-label="Pedido">#<?= $pedido->id ?><br/><?= $pedido->dataCompraFormatada() ?></td>
@@ -178,7 +173,7 @@ ob_start();
               </td>
               <td data-label="Status" onclick="event.stopPropagation()">
                 <select id="status-<?= $pedido->id ?>">
-                  <?php foreach (['preparacao'=>'Em preparação','transito'=>'Em trânsito','saiu'=>'Saiu para entrega','entregue'=>'Entregue'] as $val => $label): ?>
+                  <?php foreach (['preparacao'=>'Em preparação','transito'=>'Em trânsito','saiu'=>'Saiu para entrega','entregue'=>'Entregue','cancelado'=>'Cancelado'] as $val => $label): ?>
                     <option value="<?= $val ?>" <?= $pedido->status === $val ? 'selected' : '' ?>>
                       <?= $label ?>
                     </option>
@@ -188,7 +183,7 @@ ob_start();
               <td data-label="Data" onclick="event.stopPropagation()">
                 <input type="date" id="data-<?= $pedido->id ?>" value="<?= htmlspecialchars($pedido->dataEstimada) ?>">
               </td>
-              <td data-label="Itens da loja"><?= count($pedido->itens) ?></td>
+              <td data-label="Total"><?= $pedido->totalFormatado() ?></td>
               <td data-label="Ação" onclick="event.stopPropagation()">
                 <button class="btn-salvar btn-compacto" type="button" onclick="salvarStatus(<?= $pedido->id ?>)">Salvar</button>
               </td>
@@ -198,18 +193,16 @@ ob_start();
                 <table class="compact-detail-table">
                   <thead>
                     <tr>
-                      <th>Item</th>
-                      <th>Produto ID</th>
                       <th>Produto</th>
+                      <th>Qtd</th>
                       <th>Unitário</th>
+                      <th>Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <?php foreach ($pedido->itens as $idxItem => $item): ?>
+                    <?php foreach ($pedido->itens as $item): ?>
                       <?php $fotoRaw = $item->produtoFoto ?: 'https://placehold.co/80x80?text=Prod'; $foto = htmlspecialchars($fotoRaw); ?>
                       <tr>
-                        <td>Produto <?= $idxItem + 1 ?></td>
-                        <td>#<?= $item->produtoId ?></td>
                         <td>
                           <span class="detail-product">
                             <img src="<?= $foto ?>" alt="<?= htmlspecialchars($item->produtoNome) ?>"
@@ -217,6 +210,9 @@ ob_start();
                             <?= htmlspecialchars($item->produtoNome) ?>
                           </span>
                         </td>
+                        <td><?= $item->quantidade ?></td>
+                        <td><?= 'R$ ' . number_format($item->precoUnit, 2, ',', '.') ?></td>
+                        <td><?= $item->subtotalFormatado() ?></td>
                       </tr>
                     <?php endforeach; ?>
                   </tbody>
@@ -241,7 +237,7 @@ ob_start();
     <h2>Gerenciar Estoque</h2>
 
     <?php if (empty($produtos)): ?>
-      <p style="color:#666;padding:20px;text-align:center;">Nenhum produto cadastrado.</p>
+      <p class="estado-vazio">Nenhum produto cadastrado.</p>
     <?php else: ?>
       <table class="estoque-table">
         <thead>
@@ -274,7 +270,7 @@ ob_start();
     <h2>Produtos Cadastrados</h2>
 
     <?php if (empty($produtos)): ?>
-      <p style="color:#666;padding:20px;text-align:center;">Nenhum produto cadastrado ainda.</p>
+      <p class="estado-vazio">Nenhum produto cadastrado ainda.</p>
     <?php else: ?>
       <table class="compact-master-table">
         <thead>
@@ -313,32 +309,30 @@ ob_start();
     <?php endif; ?>
   </div>
 
-  <div id="msg-global" style="display:none;position:fixed;bottom:24px;right:24px;
-       padding:14px 24px;border-radius:4px;font-weight:600;z-index:9999;
-       box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
+  <div id="msg-global" class="toast"></div>
 
-  <div id="modal-editar" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;justify-content:center;align-items:center;">
-    <div style="background:white;padding:30px;border-radius:8px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;">
-      <h3 style="margin-top:0;">Editar Produto</h3>
-      <div style="margin-bottom:15px;">
-        <label style="display:block;font-weight:600;margin-bottom:5px;">Nome *</label>
-        <input type="text" id="edit-nome" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">
+  <div id="modal-editar" class="modal-overlay">
+    <div class="modal-janela">
+      <h3>Editar Produto</h3>
+      <div class="modal-campo">
+        <label>Nome *</label>
+        <input type="text" id="edit-nome">
       </div>
-      <div style="margin-bottom:15px;">
-        <label style="display:block;font-weight:600;margin-bottom:5px;">Descrição</label>
-        <textarea id="edit-descricao" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;min-height:100px;"></textarea>
+      <div class="modal-campo">
+        <label>Descrição</label>
+        <textarea id="edit-descricao"></textarea>
       </div>
-      <div style="margin-bottom:15px;">
-        <label style="display:block;font-weight:600;margin-bottom:5px;">URL da foto</label>
-        <input type="text" id="edit-foto" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;">
+      <div class="modal-campo">
+        <label>URL da foto</label>
+        <input type="text" id="edit-foto">
       </div>
-      <div style="margin-bottom:15px;">
-        <label style="display:block;font-weight:600;margin-bottom:5px;">Enviar nova imagem</label>
+      <div class="modal-campo">
+        <label>Enviar nova imagem</label>
         <input type="file" id="edit-foto-arquivo" accept="image/*">
       </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" onclick="fecharModalEditar()" style="padding:8px 16px;background:#ccc;border:none;border-radius:4px;cursor:pointer;">Cancelar</button>
-        <button type="button" onclick="salvarEdicaoProduto()" style="padding:8px 16px;background:#0066cc;color:white;border:none;border-radius:4px;cursor:pointer;">Salvar</button>
+      <div class="modal-acoes">
+        <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+        <button type="button" class="btn-salvar" onclick="salvarEdicaoProduto()">Salvar</button>
       </div>
     </div>
   </div>

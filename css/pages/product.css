@@ -1,8 +1,8 @@
-#product_page {
+#product-page {
   max-width: 900px;
   margin: 0 auto;
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 20px;
   height: 100%;
   min-width: 70vw;
@@ -20,31 +20,9 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   background: #fff;
   display: block;
-}
- 
-.product-gallery .miniaturas {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
- 
-.product-gallery .miniaturas img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border: 1px solid #444;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
- 
-.product-gallery .miniaturas img:hover,
-.product-gallery .miniaturas img.ativa {
-  opacity: 1;
-  border-color: #0066cc;
 }
  
 /* Coluna direita — detalhes */
@@ -58,7 +36,7 @@
  
 .product-details .product-header {
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 20px;
   margin-bottom: 12px;
 }
@@ -78,7 +56,7 @@
 }
 
 .product-details .product-header .vendedor:hover {
-  color: #0066cc;
+  color: var(--ml-azul);
 }
 
 .product-details .product-header .vendedor strong {
@@ -86,7 +64,7 @@
 }
 
 .product-details .product-header .vendedor a {
-  color: #0066cc;
+  color: var(--ml-azul);
   text-decoration: none;
 }
  
@@ -97,22 +75,16 @@
 /* Caixa de compra */
 .product-buy-box {
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 20px;
   margin-bottom: 12px;
 }
  
 .product-buy-box .preco {
   font-size: 2rem;
-  font-weight: bold;
-  color: #0066cc;
+  font-weight: 500;
+  color: var(--ml-texto);
   margin-bottom: 4px;
-}
- 
-.product-buy-box .frete {
-  font-size: 0.88rem;
-  color: #00a650;
-  margin-bottom: 16px;
 }
  
 .product-buy-box .quantidade-label {
@@ -124,7 +96,7 @@
 .product-buy-box .quantidade {
   display: flex;
   align-items: center;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   width: fit-content;
   margin-bottom: 16px;
 }
@@ -148,8 +120,8 @@
   text-align: center;
   font-weight: bold;
   font-size: 1rem;
-  border-left: 1px solid #444;
-  border-right: 1px solid #444;
+  border-left: 1px solid var(--ml-borda);
+  border-right: 1px solid var(--ml-borda);
   height: 38px;
   line-height: 38px;
 }
@@ -157,7 +129,7 @@
 .btn-adicionar {
   width: 100%;
   padding: 14px;
-  background: #0066cc;
+  background: var(--ml-azul);
   color: white;
   border: none;
   font-size: 1rem;
@@ -166,7 +138,7 @@
 }
  
 .btn-adicionar:hover {
-  background: #0052a3;
+  background: var(--ml-azul-escuro);
 }
  
 .btn-comprar {
@@ -186,7 +158,7 @@
 /* Caixa de descrição */
 .product-description {
   background: white;
-  border: 1px solid #444;
+  border: 1px solid var(--ml-borda);
   padding: 20px;
 }
  
@@ -206,7 +178,7 @@
  
 /* Responsivo */
 @media (max-width: 800px) {
-  #product_page {
+  #product-page {
     flex-direction: column;
   }
  
@@ -214,3 +186,24 @@
     width: 100%;
   }
 }
+
+/* Estilos antes inline */
+.produto-nao-encontrado {
+  text-align: center;
+  padding: 60px;
+  color: #fff;
+}
+
+#stock-info {
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+.estoque-ok { color: #00a650; }
+.estoque-esgotado { color: #c00; }
+
+.btn-comprar:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+#msg-carrinho { bottom: 150px; }

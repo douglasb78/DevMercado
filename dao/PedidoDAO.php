@@ -14,25 +14,6 @@ class PedidoDAO {
 
     // ── Leitura ─────────────────────────────────────────────────────────────
 
-    /** Pedidos de um comprador com seus itens */
-    public function listarPorComprador(int $compradorId): array {
-        $stmt = $this->pdo->prepare(
-                        'SELECT * FROM pedidos
-                            WHERE comprador_id = :cid
-                            ORDER BY id ASC'
-        );
-        $stmt->execute([':cid' => $compradorId]);
-        $rows = $stmt->fetchAll();
-
-        $pedidos = [];
-        foreach ($rows as $row) {
-            $pedido = new Pedido($row);
-            $pedido->itens = $this->listarItensDoPedido($pedido->id);
-            $pedidos[] = $pedido;
-        }
-        return $pedidos;
-    }
-
     public function listarPorCompradorPaginado(int $compradorId, int $limite, int $offset): array {
         $stmt = $this->pdo->prepare(
                         'SELECT * FROM pedidos
@@ -58,29 +39,6 @@ class PedidoDAO {
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM pedidos WHERE comprador_id = :cid');
         $stmt->execute([':cid' => $compradorId]);
         return (int) $stmt->fetchColumn();
-    }
-
-    /** Pedidos cujos produtos pertencem a um fornecedor */
-    public function listarPorFornecedor(int $fornecedorId): array {
-        $stmt = $this->pdo->prepare(
-            'SELECT DISTINCT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco
-               FROM pedidos p
-               JOIN usuarios u      ON u.id = p.comprador_id
-               JOIN itens_pedido ip ON ip.pedido_id = p.id
-               JOIN produtos pr     ON pr.id = ip.produto_id
-              WHERE pr.fornecedor_id = :fid
-              ORDER BY p.id ASC'
-        );
-        $stmt->execute([':fid' => $fornecedorId]);
-        $rows = $stmt->fetchAll();
-
-        $pedidos = [];
-        foreach ($rows as $row) {
-            $pedido = new Pedido($row);
-            $pedido->itens = $this->listarItensDoPedidoPorFornecedor($pedido->id, $fornecedorId);
-            $pedidos[] = $pedido;
-        }
-        return $pedidos;
     }
 
     public function listarPorFornecedorPaginado(int $fornecedorId, int $limite, int $offset): array {
@@ -166,6 +124,19 @@ class PedidoDAO {
         return $pedido;
     }
 
+    /** Indica se o pedido contém ao menos um item fornecido pelo fornecedor informado. */
+    public function pedidoPertenceAoFornecedor(int $pedidoId, int $fornecedorId): bool {
+        $stmt = $this->pdo->prepare(
+            'SELECT 1
+               FROM itens_pedido ip
+               JOIN produtos p ON p.id = ip.produto_id
+              WHERE ip.pedido_id = :pid AND p.fornecedor_id = :fid
+              LIMIT 1'
+        );
+        $stmt->execute([':pid' => $pedidoId, ':fid' => $fornecedorId]);
+        return (bool) $stmt->fetch();
+    }
+
     /** Lista todos os pedidos (paginação) incluindo nome do comprador e fornecedores envolvidos */
     public function listarTodosPaginado(int $limite, int $offset): array {
         $stmt = $this->pdo->prepare(
@@ -195,6 +166,52 @@ class PedidoDAO {
 
     public function contarTodos(): int {
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM pedidos');
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** Busca pedidos pelo número (id) ou nome do comprador, paginado. */
+    public function buscarPaginado(string $termo, int $limite, int $offset): array {
+        $like = '%' . trim($termo) . '%';
+        $stmt = $this->pdo->prepare(
+                'SELECT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco,
+                    string_agg(DISTINCT uf.nome, \', \' ORDER BY uf.nome) AS fornecedores
+               FROM pedidos p
+               JOIN usuarios u ON u.id = p.comprador_id
+               LEFT JOIN itens_pedido ip ON ip.pedido_id = p.id
+               LEFT JOIN produtos pr ON pr.id = ip.produto_id
+               LEFT JOIN usuarios uf ON uf.id = pr.fornecedor_id
+              WHERE p.id::text ILIKE :termo OR u.nome ILIKE :termo OR uf.nome ILIKE :termo
+              GROUP BY p.id, u.nome, u.endereco
+              ORDER BY p.id ASC
+              LIMIT :limite OFFSET :offset'
+        );
+        $stmt->bindValue(':termo', $like);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $pedidos = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $pedido = new Pedido($row);
+            $pedido->itens = $this->listarItensDoPedido($pedido->id);
+            $pedidos[] = $pedido;
+        }
+        return $pedidos;
+    }
+
+    public function contarBusca(string $termo): int {
+        $like = '%' . trim($termo) . '%';
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(DISTINCT p.id)
+               FROM pedidos p
+               JOIN usuarios u ON u.id = p.comprador_id
+               LEFT JOIN itens_pedido ip ON ip.pedido_id = p.id
+               LEFT JOIN produtos pr ON pr.id = ip.produto_id
+               LEFT JOIN usuarios uf ON uf.id = pr.fornecedor_id
+              WHERE p.id::text ILIKE :termo OR u.nome ILIKE :termo OR uf.nome ILIKE :termo'
+        );
+        $stmt->bindValue(':termo', $like);
         $stmt->execute();
         return (int) $stmt->fetchColumn();
     }
@@ -283,11 +300,17 @@ class PedidoDAO {
         $stmt->execute([':pid' => $pedidoId, ':fid' => $fornecedorId]);
         if (!$stmt->fetch()) return false;
 
-        $stmt = $this->pdo->prepare(
-            'UPDATE pedidos
-                SET status = :status, data_estimada = :data
-              WHERE id = :id'
-        );
+        // Grava as datas de envio/cancelamento conforme o novo status.
+        $sql = 'UPDATE pedidos SET status = :status, data_estimada = :data';
+        if ($status === 'saiu') {
+            $sql .= ', data_envio = COALESCE(data_envio, CURRENT_DATE)';
+        }
+        if ($status === 'cancelado') {
+            $sql .= ', data_cancelamento = COALESCE(data_cancelamento, CURRENT_DATE)';
+        }
+        $sql .= ' WHERE id = :id';
+
+        $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             ':status' => $status,
             ':data'   => $dataEstimada ?: null,
@@ -349,6 +372,64 @@ class PedidoDAO {
 
             $this->pdo->commit();
             return $total;
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Atualiza status e data estimada de um pedido sem restrição de fornecedor (uso admin).
+     * Não trata estoque: cancelamento é feito por cancelarPedidoAdmin().
+     */
+    public function atualizarStatusAdmin(int $pedidoId, string $status, ?string $dataEstimada): bool {
+        $sql = 'UPDATE pedidos SET status = :status, data_estimada = :data';
+        if ($status === 'saiu') {
+            $sql .= ', data_envio = COALESCE(data_envio, CURRENT_DATE)';
+        }
+        $sql .= ' WHERE id = :id';
+
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            ':status' => $status,
+            ':data'   => $dataEstimada ?: null,
+            ':id'     => $pedidoId,
+        ]) && $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Cancela um pedido (uso admin) e devolve o estoque de todos os itens, em transação.
+     * Não devolve estoque duas vezes: se já estiver cancelado, não faz nada.
+     * Retorna true se o pedido foi efetivamente cancelado agora.
+     */
+    public function cancelarPedidoAdmin(int $pedidoId): bool {
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare('SELECT status FROM pedidos WHERE id = :id FOR UPDATE');
+            $stmt->execute([':id' => $pedidoId]);
+            $row = $stmt->fetch();
+            if (!$row || $row['status'] === 'cancelado') {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            // Devolve o estoque de cada item do pedido.
+            $itens = $this->pdo->prepare('SELECT produto_id, quantidade FROM itens_pedido WHERE pedido_id = :pid');
+            $itens->execute([':pid' => $pedidoId]);
+            $devolver = $this->pdo->prepare('UPDATE produtos SET estoque = estoque + :qtd WHERE id = :id');
+            foreach ($itens->fetchAll() as $it) {
+                $devolver->execute([':qtd' => (int) $it['quantidade'], ':id' => (int) $it['produto_id']]);
+            }
+
+            $this->pdo->prepare(
+                "UPDATE pedidos
+                    SET status = 'cancelado',
+                        data_cancelamento = COALESCE(data_cancelamento, CURRENT_DATE)
+                  WHERE id = :id"
+            )->execute([':id' => $pedidoId]);
+
+            $this->pdo->commit();
+            return true;
         } catch (Throwable $e) {
             $this->pdo->rollBack();
             throw $e;

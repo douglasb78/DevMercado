@@ -5,6 +5,8 @@ class Pedido {
     public int    $compradorId;
     public string $status;
     public string $dataEstimada;
+    public string $dataEnvio;
+    public string $dataCancelamento;
     public float  $total;
     public string $criadoEm;
     public string $compradorNome;
@@ -18,6 +20,8 @@ class Pedido {
         $this->compradorId  = (int)   $dados['comprador_id'];
         $this->status       =         $dados['status']         ?? 'preparacao';
         $this->dataEstimada =         $dados['data_estimada']  ?? '';
+        $this->dataEnvio    =         $dados['data_envio']         ?? '';
+        $this->dataCancelamento =     $dados['data_cancelamento']  ?? '';
         $this->total        = (float) $dados['total'];
         $this->criadoEm     =         $dados['criado_em']      ?? '';
         $this->compradorNome =        $dados['comprador_nome'] ?? '';
@@ -31,7 +35,8 @@ class Pedido {
             'transito'   => 'Em trânsito',
             'saiu'       => 'Saiu para entrega',
             'entregue'   => 'Entregue',
-            default      => 'Status invÃ¡lido',
+            'cancelado'  => 'Cancelado',
+            default      => 'Status inválido',
         };
     }
 
@@ -43,6 +48,18 @@ class Pedido {
         if (!$this->dataEstimada) return '—';
         $dt = DateTime::createFromFormat('Y-m-d', $this->dataEstimada);
         return $dt ? $dt->format('d/m/Y') : $this->dataEstimada;
+    }
+
+    public function dataEnvioFormatada(): string {
+        if (!$this->dataEnvio) return '—';
+        $dt = DateTime::createFromFormat('Y-m-d', $this->dataEnvio);
+        return $dt ? $dt->format('d/m/Y') : $this->dataEnvio;
+    }
+
+    public function dataCancelamentoFormatada(): string {
+        if (!$this->dataCancelamento) return '—';
+        $dt = DateTime::createFromFormat('Y-m-d', $this->dataCancelamento);
+        return $dt ? $dt->format('d/m/Y') : $this->dataCancelamento;
     }
 
     public function dataCompraFormatada(): string {

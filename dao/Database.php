@@ -7,21 +7,24 @@ class Database {
 
     public static function getInstance(): PDO {
         if (self::$instance === null) {
-            $host = 'localhost';
-            $port = '5432';
-            $name = 'devmercado';
-            $user = 'postgres';
-            $pass = 'ucs';
+            $defaults = [
+                'host' => 'localhost',
+                'port' => '5432',
+                'name' => 'devmercado',
+                'user' => 'postgres',
+                'pass' => '',
+            ];
+            $configFile = __DIR__ . '/config.php';
+            $config = is_file($configFile)
+                ? array_merge($defaults, require $configFile)
+                : $defaults;
 
-            $dsn = "pgsql:host=$host;port=$port;dbname=$name";
+            $dsn = "pgsql:host={$config['host']};port={$config['port']};dbname={$config['name']}";
 
-            self::$instance = new PDO($dsn, $user, $pass, [
+            self::$instance = new PDO($dsn, $config['user'], $config['pass'], [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
-
-            self::$instance->exec("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false NOT NULL");
-            self::$instance->exec("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco TEXT DEFAULT '' NOT NULL");
         }
         return self::$instance;
     }
