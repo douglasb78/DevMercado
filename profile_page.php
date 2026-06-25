@@ -247,7 +247,6 @@ ob_start();
 </div>
 
 <script>
-// Autopreenchimento de endereço pelo CEP (ViaCEP — API pública gratuita).
 const cepInput = document.getElementById('cep');
 if (cepInput) {
     cepInput.addEventListener('blur', () => {
@@ -268,7 +267,6 @@ if (cepInput) {
     });
 }
 
-// Máscaras simples (apenas visuais; o backend normaliza os dígitos).
 function mascara(el, fn) {
     if (!el) return;
     el.addEventListener('input', () => { el.value = fn(el.value); });

@@ -1,7 +1,3 @@
-// Carregamento do detalhe (corpo) de um pedido via AJAX.
-// Consome a API REST /api/pedidos.php?id=N e monta a tabela de itens
-// (foto, descrição, quantidade, valor unitário e valor total de cada item).
-// Reutilizado por admin_page, manage_page e track_orders_page.
 (function () {
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -79,7 +75,6 @@
     }
   }
 
-  // Alterna a linha de detalhe e carrega os itens via AJAX na primeira abertura.
   function toggleLinha(rowId, pedidoId, containerId, editavel) {
     const row = document.getElementById(rowId);
     if (!row) return;

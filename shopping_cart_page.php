@@ -2,7 +2,6 @@
 session_start();
 require_once __DIR__ . '/include_all.php';
 
-// Processar ações do carrinho
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
@@ -209,7 +208,6 @@ function finalizarCompra() {
         el.style.color       = '#721c24';
         el.style.borderColor = '#f5c6cb';
         el.style.display = 'block';
-        // Do not auto-hide for this important error
         btn.disabled = false;
         btn.textContent = 'Finalizar Compra';
         return;

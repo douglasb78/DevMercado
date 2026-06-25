@@ -111,7 +111,6 @@ function executarBusca() {
     if (input.value.trim().length >= 2 && box.children.length) box.style.display = 'block';
   });
 
-  // Navegação por teclado (setas, Enter, Esc)
   input.addEventListener('keydown', function(e){
     const itens = box.querySelectorAll('.ss-item');
     if (e.key === 'Escape') { fechar(); return; }

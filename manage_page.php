@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Bloqueio de acesso: somente fornecedores logados acessam esta página.
 if (!empty($_SESSION['usuario_id']) && empty($_SESSION['usuario_supplier'])) {
     $usuarioLogado = (new UsuarioDAO())->buscarPorId((int) $_SESSION['usuario_id']);
     $_SESSION['usuario_supplier'] = $usuarioLogado?->isSupplier ?? false;

@@ -1,5 +1,4 @@
 <?php
-// Widget flutuante do carrinho - inclui dados iniciais do servidor
 require_once __DIR__ . '/../include_all.php';
 
 $cc = new CarrinhoController();
@@ -149,7 +148,6 @@ $cartQty = $qtyTotal;
       }
     };
 
-    // inicializar
     window.cartWidget.update(initial);
   })();
 </script>

@@ -210,7 +210,6 @@ class PedidoDAO {
     }
 
     public function criarDesdoCarrinho(int $compradorId, array $itensCarrinho): Pedido {
-        // Verifica se o comprador tem endereço cadastrado
         $stmtEnd = $this->pdo->prepare('SELECT endereco FROM usuarios WHERE id = :id LIMIT 1');
         $stmtEnd->execute([':id' => $compradorId]);
         $row = $stmtEnd->fetch();
@@ -223,7 +222,6 @@ class PedidoDAO {
         try {
             $total = array_sum(array_map(fn($i) => $i->subtotal(), $itensCarrinho));
 
-            // Cria o pedido
             $stmt = $this->pdo->prepare(
                 'INSERT INTO pedidos (comprador_id, total)
                  VALUES (:cid, :total)
@@ -232,7 +230,6 @@ class PedidoDAO {
             $stmt->execute([':cid' => $compradorId, ':total' => $total]);
             $pedido = new Pedido($stmt->fetch());
 
-            // Insere itens
             $stmtItem = $this->pdo->prepare(
                 'INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unit)
                  VALUES (:pid, :prodid, :qtd, :preco)'
@@ -260,7 +257,6 @@ class PedidoDAO {
                 }
             }
 
-            // Limpa carrinho
             $this->pdo->prepare('DELETE FROM carrinho WHERE usuario_id = :uid')
                       ->execute([':uid' => $compradorId]);
 
@@ -274,7 +270,6 @@ class PedidoDAO {
     }
 
     public function atualizarStatus(int $pedidoId, string $status, ?string $dataEstimada, int $fornecedorId): bool {
-        // Verifica se o pedido tem itens do fornecedor
         $stmt = $this->pdo->prepare(
             'SELECT 1 FROM itens_pedido ip
                JOIN produtos p ON p.id = ip.produto_id
@@ -284,7 +279,6 @@ class PedidoDAO {
         $stmt->execute([':pid' => $pedidoId, ':fid' => $fornecedorId]);
         if (!$stmt->fetch()) return false;
 
-        // Grava as datas de envio/cancelamento conforme o novo status.
         $sql = 'UPDATE pedidos SET status = :status, data_estimada = :data';
         if ($status === 'saiu') {
             $sql .= ', data_envio = COALESCE(data_envio, CURRENT_DATE)';
@@ -317,7 +311,6 @@ class PedidoDAO {
             $quantAtual = (int) $row['quantidade'];
 
             if ($novaQuantidade <= 0) {
-                // remover item e devolver estoque
                 $this->pdo->prepare('DELETE FROM itens_pedido WHERE pedido_id = :pid AND produto_id = :prod')
                           ->execute([':pid' => $pedidoId, ':prod' => $produtoId]);
                 $this->pdo->prepare('UPDATE produtos SET estoque = estoque + :qtd WHERE id = :id')
@@ -341,7 +334,6 @@ class PedidoDAO {
                           ->execute([':qtd' => $novaQuantidade, ':pid' => $pedidoId, ':prod' => $produtoId]);
             }
 
-            // Recalcula total do pedido
             $stmtTotal = $this->pdo->prepare('SELECT COALESCE(SUM(quantidade * preco_unit), 0) FROM itens_pedido WHERE pedido_id = :pid');
             $stmtTotal->execute([':pid' => $pedidoId]);
             $total = (float) $stmtTotal->fetchColumn();
@@ -383,7 +375,6 @@ class PedidoDAO {
                 return false;
             }
 
-            // Devolve o estoque de cada item do pedido.
             $itens = $this->pdo->prepare('SELECT produto_id, quantidade FROM itens_pedido WHERE pedido_id = :pid');
             $itens->execute([':pid' => $pedidoId]);
             $devolver = $this->pdo->prepare('UPDATE produtos SET estoque = estoque + :qtd WHERE id = :id');

@@ -1,7 +1,5 @@
 <?php
-// Carroussel reutilizável, gerado por IA:
-// Recebe $items = [ ['src'=>string, 'alt'=>string, 'title'=>string], ... ]
-// É opcional: $thumb_size (px)
+
 $thumb_size = $thumb_size ?? 48;
 $id = 'thumbc_' . bin2hex(random_bytes(6));
 ?>
@@ -66,32 +64,25 @@ $id = 'thumbc_' . bin2hex(random_bytes(6));
             });
           });
 
-          // Use mouse wheel (or touchpad) to navigate horizontally
           var wheelTimeout = null;
           root.addEventListener('wheel', function(e){
             var dx = e.deltaX * -1 || 0;
             var dy = e.deltaY * -1 || 0;
-            // determine predominant direction
             var primary = Math.abs(dx) > Math.abs(dy) ? dx : dy;
-            // ignore tiny deltas
             if (Math.abs(primary) < 6) return;
             e.preventDefault();
-            // pause auto cycling briefly
             try{ clearInterval(auto); }catch(_){}
             clearTimeout(wheelTimeout);
             if (primary > 0) showIndex(idx + 1); else showIndex(idx - 1);
-            // resume auto-cycle after short idle
             wheelTimeout = setTimeout(function(){
               try{ auto = setInterval(function(){ showIndex(idx + 1); }, 3500); }catch(_){}
             }, 1500);
           }, { passive: false });
 
-          // Auto-cycle
           var auto = setInterval(function(){ showIndex(idx + 1); }, 3500);
           root.addEventListener('mouseenter', function(){ clearInterval(auto); });
           root.addEventListener('mouseleave', function(){ auto = setInterval(function(){ showIndex(idx + 1); }, 3500); });
 
-          // initial align
           setTimeout(function(){ showIndex(0); }, 50);
         });
       }
@@ -99,7 +90,6 @@ $id = 'thumbc_' . bin2hex(random_bytes(6));
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window._thumbCarouselHelper.initAll);
     else window._thumbCarouselHelper.initAll();
     } else {
-      // already defined: just (re)initialize
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window._thumbCarouselHelper.initAll);
       else window._thumbCarouselHelper.initAll();
     }

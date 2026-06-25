@@ -1,6 +1,4 @@
 <?php
-// Endpoint de busca rápida de produtos (autocomplete da navbar).
-// GET /api/produtos_busca.php?q=termo  ->  { "produtos": [ ... ] }
 require_once __DIR__ . '/../dao/ProdutoDAO.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -13,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $termo = trim($_GET['q'] ?? '');
 
-// Só pesquisa a partir de 2 caracteres.
 if (mb_strlen($termo) < 2) {
     echo json_encode(['produtos' => []], JSON_UNESCAPED_UNICODE);
     exit;

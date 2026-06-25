@@ -129,15 +129,12 @@ class AuthController {
         if ($cpf !== '' && !self::cpfValido($cpf))        $this->erroPerfil('CPF inválido.');
         if ($uf !== '' && strlen($uf) !== 2)              $this->erroPerfil('UF deve ter 2 letras (ex.: SP).');
 
-        // Não permitir remover a condição de fornecedor uma vez ativada.
         $isSupplier = $usuarioAtual->isSupplier || $isSupplier;
 
         if ($email !== $usuarioAtual->email && $this->dao->emailJaExiste($email)) {
             $this->erroPerfil('Este e-mail já está cadastrado.');
         }
 
-        // Compõe o endereço legado (usado pelo checkout/pedidos) só quando há endereço
-        // estruturado preenchido — assim não apagamos um endereço antigo já salvo.
         $endereco = new Endereco([
             'endereco_logradouro'  => $logradouro,
             'endereco_numero'      => $numero,
@@ -149,7 +146,6 @@ class AuthController {
         ]);
         $enderecoComposto = $endereco->formatado() ?: null;
 
-        // Nunca armazenamos o número completo do cartão — apenas os 4 últimos, mascarados.
         $cartaoArmazenar = null;
         if ($cartaoDigitos !== '') {
             if (strlen($cartaoDigitos) < 4) $this->erroPerfil('Número de cartão inválido.');
