@@ -68,7 +68,6 @@ ob_start();
       </div>
     <?php endforeach; ?>
 
-    <!-- Resumo -->
     <div class="resumo">
       <h2>Resumo do Pedido</h2>
       <p>Itens: <strong id="total-itens"><?= count($itens) ?></strong></p>

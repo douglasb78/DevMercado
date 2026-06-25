@@ -1,4 +1,3 @@
-<!-- Navbar !-->
 <link rel="stylesheet" href="/css/components/navbar.css?v=5">
 <?php
 if (!empty($_SESSION['usuario_id'])) {
@@ -50,7 +49,6 @@ if (!empty($_SESSION['usuario_id'])) {
         <?php endif; ?>
     </div>
 </nav>
-<!-- Navbar - Script de Pesquisar!-->
 <script>
 function executarBusca() {
     const q = document.getElementById('search-input')?.value?.trim() || '';

@@ -48,7 +48,6 @@ ob_start();
 
 <div class="profile-container">
 
-    <!-- Cabeçalho da conta -->
     <header class="perfil-header">
         <div class="perfil-header-info">
             <h2>Minha conta</h2>
@@ -62,7 +61,6 @@ ob_start();
 
     <div class="perfil-grid">
 
-        <!-- ════════ COLUNA ESQUERDA: dados do usuário e endereço ════════ -->
         <div class="perfil-col perfil-col-esq">
 
             <?php if (!empty($_SESSION['sucesso_perfil'])): ?>
@@ -166,10 +164,7 @@ ob_start();
             </form>
         </div>
 
-        <!-- ════════ COLUNA DIREITA: senha e cartão ════════ -->
         <div class="perfil-col perfil-col-dir">
-
-            <!-- Segurança: alterar senha -->
             <div>
                 <?php if (!empty($_SESSION['sucesso_senha'])): ?>
                     <p class="msg-ok"><?= htmlspecialchars($_SESSION['sucesso_senha']) ?></p>
@@ -210,7 +205,6 @@ ob_start();
                 </form>
             </div>
 
-            <!-- Meios de pagamento: cartão -->
             <div>
                 <?php if (!empty($_SESSION['sucesso_cartao'])): ?>
                     <p class="msg-ok"><?= htmlspecialchars($_SESSION['sucesso_cartao']) ?></p>
