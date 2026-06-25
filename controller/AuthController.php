@@ -89,14 +89,12 @@ class AuthController {
             setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
         }
         session_destroy();
-        // Limpa o carrinho (cookie) para não vazar itens para o próximo visitante do navegador.
         setcookie('devmercado_carrinho', '', ['expires' => time() - 3600, 'path' => '/', 'samesite' => 'Lax']);
         unset($_COOKIE['devmercado_carrinho']);
         header('Location: index.php');
         exit;
     }
 
-    /** Atualiza dados pessoais, documento e endereço estruturado (não mexe na senha). */
     public function atualizarPerfil(): void {
         if (empty($_SESSION['usuario_id'])) {
             $_SESSION['erro_perfil'] = 'Faça login para atualizar seu perfil.';
@@ -184,7 +182,6 @@ class AuthController {
         exit;
     }
 
-    /** Troca de senha isolada: exige a senha atual (re-autenticação). */
     public function alterarSenha(): void {
         if (empty($_SESSION['usuario_id'])) {
             $_SESSION['erro_senha'] = 'Faça login para alterar a senha.';
@@ -214,7 +211,6 @@ class AuthController {
         exit;
     }
 
-    /** Atualiza o cartão de forma isolada. Guarda apenas os 4 últimos dígitos, mascarados. */
     public function atualizarCartao(): void {
         if (empty($_SESSION['usuario_id'])) {
             $_SESSION['erro_cartao'] = 'Faça login para atualizar o cartão.';
@@ -244,7 +240,6 @@ class AuthController {
         exit;
     }
 
-    /** Validação de CPF (dígitos verificadores). */
     private static function cpfValido(string $cpf): bool {
         $cpf = preg_replace('/\D/', '', $cpf);
         if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {

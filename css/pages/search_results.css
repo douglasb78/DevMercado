@@ -12,7 +12,6 @@
   padding: 20px;
 }
 
-/* Sidebar */
 .sidebar {
   width: 260px;
   background: white;
@@ -41,7 +40,6 @@
   font-weight: bold;
 }
 
-/* Conteúdo Principal */
 .main-content {
   flex: 1;
 }
@@ -58,7 +56,6 @@
   font-size: 24px;
 }
 
-/* Card de Produto */
 .produto-card {
   position: relative;
   display: flex;
@@ -72,7 +69,6 @@
   align-items: center;
 }
 
-/* Produto sem estoque (estoque ZERO => indisponível) */
 .produto-card.indisponivel .produto-img {
   filter: grayscale(100%);
   opacity: 0.5;
@@ -175,7 +171,6 @@
   background: var(--ml-azul-escuro);
 }
 
-/* Seção de Fornecedores */
 .secao-fornecedores {
   margin-bottom: 40px;
   background: white;
@@ -254,7 +249,6 @@
   opacity: 1;
 }
 
-/* Seção de Produtos */
 .secao-produtos {
   margin-top: 40px;
 }
@@ -282,7 +276,6 @@
   }
 }
 
-/* Estilos antes inline */
 .link-fornecedor {
   color: var(--ml-azul);
   text-decoration: none;

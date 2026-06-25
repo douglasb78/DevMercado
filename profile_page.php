@@ -2,7 +2,6 @@
 session_start();
 require_once __DIR__ . '/include_all.php';
 
-// Processar ações do perfil (dados, senha e cartão são fluxos separados).
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $auth = new AuthController();
     if ($_POST['action'] === 'atualizar_perfil') {
@@ -30,7 +29,6 @@ if (!$usuario) {
     exit;
 }
 
-// ── Dados derivados para exibição ──────────────────────────────────────────
 $inicial   = mb_strtoupper(mb_substr($usuario->nome, 0, 1));
 $tipoConta = $usuario->isAdmin ? 'Administrador' : ($usuario->isSupplier ? 'Vendedor' : 'Comprador');
 
@@ -38,7 +36,6 @@ $cpfFmt = strlen($usuario->cpf) === 11
     ? preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $usuario->cpf)
     : '';
 
-// Cartão: só exibimos os 4 últimos dígitos. Nunca renderizamos o número completo.
 $cartaoDigitos   = preg_replace('/\D/', '', $usuario->cartaocredito ?? '');
 $cartaoMascarado = strlen($cartaoDigitos) >= 4 ? '•••• ' . substr($cartaoDigitos, -4) : '';
 

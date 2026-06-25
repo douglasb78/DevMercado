@@ -112,7 +112,6 @@ class ProdutoDAO {
         return (int) $stmt->fetchColumn();
     }
 
-    /** Busca de produtos para o admin: por id, nome ou nome do fornecedor. */
     public function buscarAdmin(string $termo, int $limite = 50, int $offset = 0): array {
         $like = '%' . trim($termo) . '%';
         $stmt = $this->pdo->prepare(
@@ -274,7 +273,6 @@ class ProdutoDAO {
         return $stmt->execute([':est' => $novoEstoque, ':id' => $id]);
     }
 
-    /** Marca ou desmarca um produto como removido (soft delete) - usado por admin */
     public function setDeleted(int $id, bool $isDeleted): bool {
         $stmt = $this->pdo->prepare(
             'UPDATE produtos SET is_deleted = :flag WHERE id = :id'

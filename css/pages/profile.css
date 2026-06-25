@@ -118,7 +118,6 @@
 	font-size: 0.95rem;
 }
 
-/* ── Layout em duas colunas ───────────────────────────────────────────── */
 .perfil-header {
 	margin-bottom: 24px;
 }
@@ -201,7 +200,6 @@
 	}
 }
 
-/* Estilo antes inline */
 #endereco_uf {
 	text-transform: uppercase;
 }

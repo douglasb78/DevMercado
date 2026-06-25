@@ -8,8 +8,6 @@
   z-index: 10000;
 }
 
-/* Em telas pequenas o widget passa a ocupar a largura com pequenas margens,
-   evitando overflow horizontal (scroll lateral). */
 @media (max-width: 480px) {
   #cart-widget {
     right: 12px;
@@ -100,7 +98,6 @@
   border: 1px solid var(--ml-borda);
 }
 
-/* Mensagem de carrinho vazio (montada via JS) */
 .cart-vazio {
   padding: 14px;
   color: #555;

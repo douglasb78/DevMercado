@@ -68,9 +68,6 @@ button:hover {
 	}
 }
 
-/* ═══════════════ Utilitários compartilhados ═══════════════ */
-
-/* Mensagens de feedback */
 .msg-erro { color: #c00; margin-bottom: 12px; }
 .msg-ok   { color: #0a7d34; margin-bottom: 12px; }
 
@@ -78,7 +75,6 @@ button:hover {
 	margin-top: 12px;
 }
 
-/* Aviso inline (exibido via JS) */
 .aviso-inline {
 	display: none;
 	margin-top: 12px;
@@ -89,7 +85,6 @@ button:hover {
 	font-weight: 600;
 }
 
-/* Toast flutuante (exibido via JS) */
 .toast {
 	display: none;
 	position: fixed;
@@ -104,7 +99,6 @@ button:hover {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Estado vazio (listas e grids) */
 .estado-vazio {
 	text-align: center;
 	padding: 40px;
@@ -115,20 +109,17 @@ button:hover {
 	border: 1px solid #ddd;
 }
 
-/* Célula de tabela vazia */
 .celula-vazia {
 	text-align: center;
 	padding: 30px;
 	color: #666;
 }
 
-/* Link sem sublinhado, herdando a cor do contexto */
 .link-limpo {
 	text-decoration: none;
 	color: inherit;
 }
 
-/* ─── Modal genérico ─── */
 .modal-overlay {
 	display: none;
 	position: fixed;
@@ -179,7 +170,6 @@ button:hover {
 .modal-acoes .btn-cancelar { background: #ccc; }
 .modal-acoes .btn-salvar { background: var(--ml-azul); color: #fff; }
 
-/* ─── Detalhe de pedido (tabela montada via JS em pedido_detalhe.js) ─── */
 .pd-table {
 	width: 100%;
 	border-collapse: collapse;

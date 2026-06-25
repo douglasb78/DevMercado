@@ -31,7 +31,6 @@ class Produto {
         return 'R$ ' . number_format($this->preco, 2, ',', '.');
     }
 
-    /** Objeto de domínio Estoque (associação Produto 1 -- 0..1 Estoque). */
     public function getEstoque(): Estoque {
         return new Estoque($this->estoque, $this->preco);
     }

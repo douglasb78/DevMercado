@@ -144,7 +144,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.65);
-  z-index: 20050; /* acima do widget flutuante */
+  z-index: 20050;
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -321,7 +321,6 @@
   }
 }
 
-/* Barra de ferramentas (busca + adicionar) — igual nas 3 abas */
 .admin-toolbar {
   display: flex;
   gap: 8px;
@@ -356,7 +355,6 @@
   color: #c00;
 }
 
-/* Badge de status (aba Pedidos) */
 .admin-orders-table .status {
   display: inline-block;
   padding: 3px 7px;
@@ -372,7 +370,6 @@
 .admin-orders-table .entregue   { background: #d4edda; color: #155724; }
 .admin-orders-table .cancelado  { background: #f8d7da; color: #721c24; }
 
-/* Modais padronizados do admin */
 .admin-modal {
   display: none;
   position: fixed;
@@ -448,7 +445,6 @@
 .admin-modal-acoes .btn-cancelar { background: #ccc; }
 .admin-modal-acoes .btn-salvar   { background: var(--ml-azul); color: #fff; }
 
-/* Estilos antes inline */
 .admin-modal-box .check-line label { margin: 0; }
 #modal-item-editar .admin-modal-box { max-width: 420px; }
 #admin-item-produto-nome { font-weight: 600; padding: 4px 0; }

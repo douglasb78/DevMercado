@@ -9,7 +9,6 @@ class CarrinhoDAO {
         $this->pdo = Database::getInstance();
     }
 
-    /** Retorna todos os itens do carrinho */
     public function listarPorUsuario(int $usuarioId): array {
         $stmt = $this->pdo->prepare(
             'SELECT c.*,
@@ -28,7 +27,6 @@ class CarrinhoDAO {
         return array_map(fn($r) => new ItemCarrinho($r), $stmt->fetchAll());
     }
 
-    /** Adiciona item ao carrinho ou incrementa */
     public function adicionarOuIncrementar(int $usuarioId, int $produtoId, int $quantidade = 1): bool {
         $stmt = $this->pdo->prepare(
             'INSERT INTO carrinho (usuario_id, produto_id, quantidade)
@@ -44,7 +42,6 @@ class CarrinhoDAO {
         ]);
     }
 
-    /** Esvazia o carrinho inteiro */
     public function limpar(int $usuarioId): bool {
         $stmt = $this->pdo->prepare(
             'DELETE FROM carrinho WHERE usuario_id = :uid'

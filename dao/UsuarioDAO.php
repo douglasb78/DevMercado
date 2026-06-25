@@ -164,7 +164,6 @@ class UsuarioDAO {
         return Usuario::fromRow($row);
     }
 
-    /** @return Fornecedor[] */
     public function buscarFornecedores(string $termo): array {
         $like = '%' . $termo . '%';
         $stmt = $this->pdo->prepare(
@@ -197,7 +196,6 @@ class UsuarioDAO {
             $stmt = $this->pdo->query('SELECT COUNT(*) FROM usuarios WHERE is_deleted = false');
             return (int) $stmt->fetchColumn();
         }
-    /** Busca usuários por código (id), nome ou e-mail, paginado (admin). */
     public function buscarPaginado(string $termo, int $limite, int $offset): array {
         $like = '%' . trim($termo) . '%';
         $stmt = $this->pdo->prepare(
@@ -227,7 +225,6 @@ class UsuarioDAO {
         return (int) $stmt->fetchColumn();
     }
 
-    /** Exclusão lógica (soft delete) de um usuário. */
     public function softDelete(int $id): bool {
         $stmt = $this->pdo->prepare(
             'UPDATE usuarios SET is_deleted = true WHERE id = :id AND is_deleted = false'

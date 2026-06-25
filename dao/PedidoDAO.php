@@ -12,8 +12,6 @@ class PedidoDAO {
         $this->pdo = Database::getInstance();
     }
 
-    // ── Leitura ─────────────────────────────────────────────────────────────
-
     public function listarPorCompradorPaginado(int $compradorId, int $limite, int $offset): array {
         $stmt = $this->pdo->prepare(
                         'SELECT * FROM pedidos
@@ -78,7 +76,6 @@ class PedidoDAO {
         return (int) $stmt->fetchColumn();
     }
 
-    /** Itens de um pedido */
     public function listarItensDoPedido(int $pedidoId): array {
         $stmt = $this->pdo->prepare(
             'SELECT ip.*,
@@ -96,7 +93,6 @@ class PedidoDAO {
         return array_map(fn($r) => new ItemPedido($r), $stmt->fetchAll());
     }
 
-    /** Itens de um pedido filtrando por fornecedor */
     public function listarItensDoPedidoPorFornecedor(int $pedidoId, int $fornecedorId): array {
         $stmt = $this->pdo->prepare(
             'SELECT ip.*,
@@ -124,7 +120,6 @@ class PedidoDAO {
         return $pedido;
     }
 
-    /** Indica se o pedido contém ao menos um item fornecido pelo fornecedor informado. */
     public function pedidoPertenceAoFornecedor(int $pedidoId, int $fornecedorId): bool {
         $stmt = $this->pdo->prepare(
             'SELECT 1
@@ -137,7 +132,6 @@ class PedidoDAO {
         return (bool) $stmt->fetch();
     }
 
-    /** Lista todos os pedidos (paginação) incluindo nome do comprador e fornecedores envolvidos */
     public function listarTodosPaginado(int $limite, int $offset): array {
         $stmt = $this->pdo->prepare(
                 'SELECT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco,
@@ -170,7 +164,6 @@ class PedidoDAO {
         return (int) $stmt->fetchColumn();
     }
 
-    /** Busca pedidos pelo número (id) ou nome do comprador, paginado. */
     public function buscarPaginado(string $termo, int $limite, int $offset): array {
         $like = '%' . trim($termo) . '%';
         $stmt = $this->pdo->prepare(
@@ -216,14 +209,6 @@ class PedidoDAO {
         return (int) $stmt->fetchColumn();
     }
 
-    // ── Escrita ─────────────────────────────────────────────────────────────
-
-    /**
-     * Cria pedido a partir do carrinho do usuário.
-     * Decrementa estoque e limpa o carrinho dentro de uma transação.
-     *
-     * @param  ItemCarrinho[] $itensCarrinho
-     */
     public function criarDesdoCarrinho(int $compradorId, array $itensCarrinho): Pedido {
         // Verifica se o comprador tem endereço cadastrado
         $stmtEnd = $this->pdo->prepare('SELECT endereco FROM usuarios WHERE id = :id LIMIT 1');
@@ -288,7 +273,6 @@ class PedidoDAO {
         }
     }
 
-    /** Atualiza status e data estimada de um pedido (apenas fornecedor) */
     public function atualizarStatus(int $pedidoId, string $status, ?string $dataEstimada, int $fornecedorId): bool {
         // Verifica se o pedido tem itens do fornecedor
         $stmt = $this->pdo->prepare(
@@ -318,11 +302,6 @@ class PedidoDAO {
         ]);
     }
 
-    /**
-     * Atualiza a quantidade de um item dentro de um pedido.
-     * Ajusta o estoque do produto e recalcula o total do pedido dentro de uma transação.
-     * Retorna o novo total do pedido.
-     */
     public function atualizarItemQuantidade(int $pedidoId, int $produtoId, int $novaQuantidade): float {
         $this->pdo->beginTransaction();
         try {
@@ -378,10 +357,6 @@ class PedidoDAO {
         }
     }
 
-    /**
-     * Atualiza status e data estimada de um pedido sem restrição de fornecedor (uso admin).
-     * Não trata estoque: cancelamento é feito por cancelarPedidoAdmin().
-     */
     public function atualizarStatusAdmin(int $pedidoId, string $status, ?string $dataEstimada): bool {
         $sql = 'UPDATE pedidos SET status = :status, data_estimada = :data';
         if ($status === 'saiu') {
@@ -397,11 +372,6 @@ class PedidoDAO {
         ]) && $stmt->rowCount() > 0;
     }
 
-    /**
-     * Cancela um pedido (uso admin) e devolve o estoque de todos os itens, em transação.
-     * Não devolve estoque duas vezes: se já estiver cancelado, não faz nada.
-     * Retorna true se o pedido foi efetivamente cancelado agora.
-     */
     public function cancelarPedidoAdmin(int $pedidoId): bool {
         $this->pdo->beginTransaction();
         try {

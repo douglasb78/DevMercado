@@ -63,7 +63,6 @@
   line-height: 1.4;
 }
 
-/* Painel de conteúdo */
 .store-panel {
   display: none;
   background: white;
@@ -547,7 +546,6 @@
 
   .image-modal { z-index: 11000; }
   
-  /* Force detail rows hidden on small screens unless explicitly opened */
   .compact-detail-row { display: none !important; }
   .compact-detail-row.visible { display: block !important; }
   .compact-detail-row > td { display: block !important; width: 100% !important; border: 1px solid #ccc !important; border-top: 0 !important; padding: 6px !important; }

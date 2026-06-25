@@ -70,7 +70,6 @@
   transition: all 0.2s;
 }
 
-/* Produto sem estoque (estoque ZERO => indisponível) */
 .produto-card.indisponivel img {
   filter: grayscale(100%);
   opacity: 0.5;
@@ -162,7 +161,6 @@
 	}
 }
 
-/* Estado vazio dentro do grid (antes inline) */
 .produtos-grid .estado-vazio {
   grid-column: 1 / -1;
 }

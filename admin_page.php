@@ -6,7 +6,6 @@ $usuarioDao = new UsuarioDAO();
 $produtoDao = new ProdutoDAO();
 $pedidoDao  = new PedidoDAO();
 
-/* ───────────────── Autenticação (somente admin) ───────────────── */
 if (!empty($_SESSION['usuario_id']) && empty($_SESSION['usuario_admin'])) {
     $usuarioLogado = $usuarioDao->buscarPorId((int) $_SESSION['usuario_id']);
     $_SESSION['usuario_admin'] = $usuarioLogado?->isAdmin ?? false;
@@ -17,7 +16,6 @@ if (empty($_SESSION['usuario_admin'])) {
     exit;
 }
 
-/* ───────────────── Helpers ───────────────── */
 function admin_link(string $aba, int $pagina, string $busca = ''): string {
     $url = '/admin_page.php?aba=' . urlencode($aba) . '&pagina=' . $pagina;
     if ($busca !== '') $url .= '&busca=' . urlencode($busca);
@@ -31,7 +29,6 @@ function admin_json(array $data, int $code = 200): never {
     exit;
 }
 
-/** Trata upload opcional de imagem; devolve o caminho salvo ou null. Em erro, responde JSON e encerra. */
 function admin_processar_upload(string $campo): ?string {
     if (empty($_FILES[$campo]) || ($_FILES[$campo]['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return null;
@@ -50,7 +47,6 @@ function admin_processar_upload(string $campo): ?string {
     return '/upload_media/' . $nomeArquivo;
 }
 
-/** Status de pedido editáveis pelo admin (cancelamento é ação à parte). */
 const STATUS_PEDIDO = [
     'preparacao' => 'Em preparação',
     'transito'   => 'Em trânsito',
@@ -58,11 +54,9 @@ const STATUS_PEDIDO = [
     'entregue'   => 'Entregue',
 ];
 
-/* ───────────────── Ações (CRUD) via POST ───────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
-    /* ---- USUÁRIO: criar ---- */
     if ($action === 'usuario_criar') {
         $nome     = trim($_POST['nome'] ?? '');
         $email    = trim($_POST['email'] ?? '');
@@ -87,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- USUÁRIO: alternar fornecedor (AJAX) ---- */
     if ($action === 'usuario_toggle_supplier') {
         $targetId = (int) ($_POST['id'] ?? 0);
         $desired  = !empty($_POST['is_supplier']);
@@ -97,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         admin_json(['mensagem' => 'Atualizado.']);
     }
 
-    /* ---- USUÁRIO: atualizar ---- */
     if ($action === 'usuario_atualizar') {
         $uid      = (int) ($_POST['usuario_id'] ?? 0);
         $email    = trim($_POST['email'] ?? '');
@@ -130,7 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- USUÁRIO: excluir (soft delete) ---- */
     if ($action === 'usuario_excluir') {
         $uid = (int) ($_POST['usuario_id'] ?? 0);
         if (!$uid)                              admin_json(['erro' => 'ID do usuário inválido.'], 400);
@@ -143,7 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- PRODUTO: criar ---- */
     if ($action === 'produto_criar') {
         $nome      = trim($_POST['nome'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
@@ -164,7 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- PRODUTO: atualizar ---- */
     if ($action === 'admin_produto_atualizar') {
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
         $nome      = trim($_POST['nome'] ?? '');
@@ -186,7 +175,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- PRODUTO: excluir / restaurar (soft delete) ---- */
     if ($action === 'admin_produto_set_deleted') {
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
         $isDeleted = !empty($_POST['is_deleted']);
@@ -199,7 +187,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- PEDIDO: editar status ---- */
     if ($action === 'pedido_status') {
         $pedidoId = (int) ($_POST['pedido_id'] ?? 0);
         $status   = trim($_POST['status'] ?? '');
@@ -213,7 +200,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- PEDIDO: cancelar (devolve estoque) ---- */
     if ($action === 'pedido_cancelar') {
         $pedidoId = (int) ($_POST['pedido_id'] ?? 0);
         if (!$pedidoId) admin_json(['erro' => 'ID inválido.'], 400);
@@ -225,7 +211,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    /* ---- PEDIDO: editar quantidade de item (no mestre-detalhe) ---- */
     if ($action === 'pedido_item_atualizar') {
         $pedidoId  = (int) ($_POST['pedido_id'] ?? 0);
         $produtoId = (int) ($_POST['produto_id'] ?? 0);
@@ -242,7 +227,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     admin_json(['erro' => 'Ação desconhecida.'], 400);
 }
 
-/* ───────────────── Parâmetros e dados da listagem ───────────────── */
 $aba = $_GET['aba'] ?? 'usuarios';
 $map = ['clientes' => 'usuarios', 'fornecedores' => 'usuarios'];
 if (isset($map[$aba])) $aba = $map[$aba];
@@ -286,7 +270,6 @@ $totalPaginas = max(1, (int) ceil($total / $porPagina));
 $dados = $aba === 'usuarios' ? $usuarios : ($aba === 'produtos' ? $produtos : $pedidos);
 $meuId = (int) $_SESSION['usuario_id'];
 
-/* ───────────────── Render da tabela + paginação (reaproveitado no AJAX) ───────────────── */
 function admin_render_tabela(string $aba, array $dados, string $busca, int $pagina, int $totalPaginas, int $total, int $meuId): void {
 ?>
 <div id="admin-tabela-wrap" data-total="<?= $total ?>">
@@ -412,7 +395,6 @@ function admin_render_tabela(string $aba, array $dados, string $busca, int $pagi
 <?php
 }
 
-/* ───────────────── Resposta AJAX (apenas a tabela) ───────────────── */
 if (isset($_GET['fragmento'])) {
     admin_render_tabela($aba, $dados, $busca, $pagina, $totalPaginas, $total, $meuId);
     exit;
@@ -453,7 +435,6 @@ ob_start();
   <?php admin_render_tabela($aba, $dados, $busca, $pagina, $totalPaginas, $total, $meuId); ?>
 </div>
 
-<!-- Modal de imagem ampliada -->
 <div class="image-modal" id="image-modal" onclick="fecharImagem()">
   <div class="image-modal-content" onclick="event.stopPropagation()">
     <button type="button" onclick="fecharImagem()">Fechar</button>
@@ -462,7 +443,6 @@ ob_start();
   </div>
 </div>
 
-<!-- Modal: criar usuário -->
 <div id="modal-usuario-criar" class="admin-modal">
   <div class="admin-modal-box">
     <h3>Adicionar Usuário</h3>
@@ -481,7 +461,6 @@ ob_start();
   </div>
 </div>
 
-<!-- Modal: editar usuário -->
 <div id="modal-usuario-editar" class="admin-modal">
   <div class="admin-modal-box">
     <h3>Editar Usuário</h3>
@@ -501,7 +480,6 @@ ob_start();
   </div>
 </div>
 
-<!-- Modal: criar produto -->
 <div id="modal-produto-criar" class="admin-modal">
   <div class="admin-modal-box">
     <h3>Adicionar Produto</h3>
@@ -520,7 +498,6 @@ ob_start();
   </div>
 </div>
 
-<!-- Modal: editar produto -->
 <div id="modal-produto-editar" class="admin-modal">
   <div class="admin-modal-box">
     <h3>Editar Produto</h3>
@@ -538,7 +515,6 @@ ob_start();
   </div>
 </div>
 
-<!-- Modal: editar status do pedido -->
 <div id="modal-pedido-status" class="admin-modal">
   <div class="admin-modal-box">
     <h3>Editar Pedido</h3>
@@ -558,7 +534,6 @@ ob_start();
   </div>
 </div>
 
-<!-- Modal: editar quantidade de item do pedido (mestre-detalhe) -->
 <div id="modal-item-editar" class="admin-modal">
   <div class="admin-modal-box">
     <h3>Editar Item do Pedido</h3>
@@ -579,7 +554,6 @@ ob_start();
 const ADMIN_ABA = <?= json_encode($aba) ?>;
 let ADMIN_PAGINA = <?= $pagina ?>;
 
-/* ---------- utilidades ---------- */
 function postJsonAdmin(body) {
   if (body instanceof FormData) {
     return fetch('/admin_page.php', { method: 'POST', body: body }).then(r => r.json());
@@ -600,7 +574,6 @@ function abrirImagem(src, titulo) {
 }
 function fecharImagem() { document.getElementById('image-modal').classList.remove('visible'); }
 
-/* ---------- busca AJAX + paginação ---------- */
 const buscaInput = document.getElementById('admin-busca-input');
 let buscaTimer;
 if (buscaInput) {
@@ -635,7 +608,6 @@ function recarregarTabela(pagina) {
     .catch(() => {});
 }
 
-/* ---------- usuário: criar ---------- */
 function abrirModalCriarUsuario() {
   ['nome','email','telefone','endereco','cartao','senha','senha-confirm'].forEach(c => document.getElementById('novo-usuario-' + c).value = '');
   document.getElementById('novo-usuario-supplier').checked = false;
@@ -659,14 +631,12 @@ function criarUsuario() {
   }).catch(() => alert('Erro ao criar usuário.'));
 }
 
-/* ---------- usuário: alternar fornecedor ---------- */
 function toggleFornecedor(id, checked) {
   postJsonAdmin({ action: 'usuario_toggle_supplier', id: id, is_supplier: checked ? '1' : '' })
     .then(d => { if (d.erro) { alert(d.erro); recarregarTabela(ADMIN_PAGINA); } })
     .catch(() => alert('Erro ao alterar fornecedor.'));
 }
 
-/* ---------- usuário: editar ---------- */
 function abrirModalEditarUsuario(id, nome, email, telefone, endereco, cartao, isSupplier) {
   document.getElementById('admin-usuario-id').value = id;
   document.getElementById('admin-usuario-nome').value = nome || '';
@@ -704,7 +674,6 @@ function salvarEdicaoUsuarioAdmin() {
   }).catch(() => alert('Erro ao atualizar usuário.'));
 }
 
-/* ---------- produto: criar ---------- */
 function abrirModalCriarProduto() {
   ['nome','preco','categoria','descricao','foto-url','fornecedor'].forEach(c => document.getElementById('novo-produto-' + c).value = '');
   document.getElementById('novo-produto-estoque').value = '0';
@@ -730,7 +699,6 @@ function criarProduto() {
   }).catch(() => alert('Erro ao criar produto.'));
 }
 
-/* ---------- produto: editar / excluir ---------- */
 function abrirModalEditarProdutoAdmin(id, nome, descricao, preco, categoria, fotoUrl) {
   document.getElementById('admin-produto-id').value = id;
   document.getElementById('admin-produto-nome').value = nome || '';
@@ -765,7 +733,6 @@ function excluirProduto(id, nome) {
     .catch(() => alert('Erro ao excluir produto.'));
 }
 
-/* ---------- pedido: status / cancelar ---------- */
 function abrirModalStatusPedido(id, status, dataEstimada) {
   document.getElementById('ped-status-id').value = id;
   const sel = document.getElementById('ped-status-valor');
@@ -793,7 +760,6 @@ function cancelarPedido(id) {
     .catch(() => alert('Erro ao cancelar pedido.'));
 }
 
-/* ---------- pedido: editar quantidade de item (chamado pelo pedido_detalhe.js) ---------- */
 function abrirModalEditarItemPedido(pedidoId, produtoId, produtoNome, quantidade) {
   document.getElementById('admin-pedido-id').value = pedidoId;
   document.getElementById('admin-pedido-produto-id').value = produtoId;
@@ -810,7 +776,7 @@ function salvarEdicaoItemPedido() {
   }).then(d => {
     if (d.erro) { alert(d.erro); return; }
     fecharModal('modal-item-editar');
-    location.reload(); // recarrega para refletir o detalhe e o total
+    location.reload();
   }).catch(() => alert('Erro ao atualizar item do pedido.'));
 }
 </script>
