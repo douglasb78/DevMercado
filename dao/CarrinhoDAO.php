@@ -22,6 +22,9 @@ class CarrinhoDAO {
                JOIN produtos p ON p.id = c.produto_id
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE c.usuario_id = :uid
+                AND p.is_deleted = false
+                AND u.is_supplier = true
+                AND p.estoque > 0
               ORDER BY p.id ASC'
         );
         $stmt->execute([':uid' => $usuarioId]);
@@ -83,7 +86,11 @@ class CarrinhoDAO {
             'SELECT COALESCE(SUM(c.quantidade * p.preco), 0)
                FROM carrinho c
                JOIN produtos p ON p.id = c.produto_id
-              WHERE c.usuario_id = :uid'
+               JOIN usuarios u ON u.id = p.fornecedor_id
+              WHERE c.usuario_id = :uid
+                AND p.is_deleted = false
+                AND u.is_supplier = true
+                AND p.estoque > 0'
         );
         $stmt->execute([':uid' => $usuarioId]);
         return (float) $stmt->fetchColumn();
@@ -92,7 +99,14 @@ class CarrinhoDAO {
     /** Conta itens no carrinho */
     public function contar(int $usuarioId): int {
         $stmt = $this->pdo->prepare(
-            'SELECT COALESCE(SUM(quantidade), 0) FROM carrinho WHERE usuario_id = :uid'
+            'SELECT COALESCE(SUM(c.quantidade), 0)
+               FROM carrinho c
+               JOIN produtos p ON p.id = c.produto_id
+               JOIN usuarios u ON u.id = p.fornecedor_id
+              WHERE c.usuario_id = :uid
+                AND p.is_deleted = false
+                AND u.is_supplier = true
+                AND p.estoque > 0'
         );
         $stmt->execute([':uid' => $usuarioId]);
         return (int) $stmt->fetchColumn();

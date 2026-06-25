@@ -15,6 +15,7 @@ class ProdutoDAO {
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE p.is_deleted = false
+                AND u.is_supplier = true
               ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
@@ -29,7 +30,9 @@ class ProdutoDAO {
             'SELECT p.*, u.nome AS fornecedor_nome
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE p.is_deleted = false AND p.estoque > 0
+              WHERE p.is_deleted = false
+                AND u.is_supplier = true
+                AND p.estoque > 0
               ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
@@ -44,7 +47,9 @@ class ProdutoDAO {
             'SELECT p.*, u.nome AS fornecedor_nome
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE p.categoria = :categoria AND p.is_deleted = false
+              WHERE p.categoria = :categoria
+                AND p.is_deleted = false
+                AND u.is_supplier = true
               ORDER BY p.id ASC
               LIMIT :limite OFFSET :offset'
         );
@@ -83,6 +88,7 @@ class ProdutoDAO {
                 OR p.nome ILIKE :termo 
                 OR p.descricao ILIKE :termo2)
                 AND p.is_deleted = false
+                AND u.is_supplier = true
             ORDER BY p.id ASC
             LIMIT :limite OFFSET :offset'
         );
@@ -99,9 +105,12 @@ class ProdutoDAO {
     public function contarBusca(string $termo): int {
         $like = '%' . $termo . '%';
         $stmt = $this->pdo->prepare(
-            'SELECT COUNT(*) FROM produtos
-              WHERE (nome ILIKE :termo OR descricao ILIKE :termo2)
-                AND is_deleted = false'
+            'SELECT COUNT(*)
+               FROM produtos p
+               JOIN usuarios u ON u.id = p.fornecedor_id
+              WHERE (p.nome ILIKE :termo OR p.descricao ILIKE :termo2)
+                AND p.is_deleted = false
+                AND u.is_supplier = true'
         );
         $stmt->execute([':termo' => $like, ':termo2' => $like]);
         return (int) $stmt->fetchColumn();
@@ -113,6 +122,8 @@ class ProdutoDAO {
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
               WHERE p.id = :id
+                AND p.is_deleted = false
+                AND u.is_supplier = true
               LIMIT 1'
         );
         $stmt->execute([':id' => $id]);
@@ -125,7 +136,9 @@ class ProdutoDAO {
             'SELECT p.*, u.nome AS fornecedor_nome
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE p.fornecedor_id = :fid AND p.is_deleted = false
+              WHERE p.fornecedor_id = :fid
+                AND p.is_deleted = false
+                AND u.is_supplier = true
               ORDER BY p.id ASC'
         );
         $stmt->execute([':fid' => $fornecedorId]);
@@ -134,21 +147,38 @@ class ProdutoDAO {
 
     public function listarCategorias(): array {
         $stmt = $this->pdo->query(
-            'SELECT categoria, COUNT(*) AS total
-               FROM produtos
-              WHERE categoria IS NOT NULL AND categoria <> \'\' AND is_deleted = false
-              GROUP BY categoria
-              ORDER BY categoria'
+            'SELECT p.categoria, COUNT(*) AS total
+               FROM produtos p
+               JOIN usuarios u ON u.id = p.fornecedor_id
+              WHERE p.categoria IS NOT NULL
+                AND p.categoria <> \'\'
+                AND p.is_deleted = false
+                AND u.is_supplier = true
+              GROUP BY p.categoria
+              ORDER BY p.categoria'
         );
         return $stmt->fetchAll();
     }
 
     public function contar(?string $categoria = null): int {
         if ($categoria) {
-            $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM produtos WHERE categoria = :cat AND is_deleted = false');
+            $stmt = $this->pdo->prepare(
+                'SELECT COUNT(*)
+                   FROM produtos p
+                   JOIN usuarios u ON u.id = p.fornecedor_id
+                  WHERE p.categoria = :cat
+                    AND p.is_deleted = false
+                    AND u.is_supplier = true'
+            );
             $stmt->execute([':cat' => $categoria]);
         } else {
-            $stmt = $this->pdo->query('SELECT COUNT(*) FROM produtos WHERE is_deleted = false');
+            $stmt = $this->pdo->query(
+                'SELECT COUNT(*)
+                   FROM produtos p
+                   JOIN usuarios u ON u.id = p.fornecedor_id
+                  WHERE p.is_deleted = false
+                    AND u.is_supplier = true'
+            );
         }
         return (int) $stmt->fetchColumn();
     }
@@ -162,7 +192,9 @@ class ProdutoDAO {
             "SELECT p.*, u.nome AS fornecedor_nome
                FROM produtos p
                JOIN usuarios u ON u.id = p.fornecedor_id
-              WHERE p.id IN ($placeholders) AND p.is_deleted = false
+              WHERE p.id IN ($placeholders)
+                AND p.is_deleted = false
+                AND u.is_supplier = true
               ORDER BY p.id ASC"
         );
         $stmt->execute($ids);
