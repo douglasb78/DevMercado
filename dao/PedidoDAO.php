@@ -11,6 +11,29 @@ class PedidoDAO {
     public function __construct() {
         $this->pdo = Database::getInstance();
     }
+	
+	public function listarTodos(): array {
+        $stmt = $this->pdo->prepare(
+            'SELECT p.*, u.nome AS comprador_nome, u.endereco AS comprador_endereco,
+                    string_agg(DISTINCT uf.nome, \', \' ORDER BY uf.nome) AS fornecedores
+               FROM pedidos p
+               JOIN usuarios u ON u.id = p.comprador_id
+               LEFT JOIN itens_pedido ip ON ip.pedido_id = p.id
+               LEFT JOIN produtos pr ON pr.id = ip.produto_id
+               LEFT JOIN usuarios uf ON uf.id = pr.fornecedor_id
+              GROUP BY p.id, u.nome, u.endereco
+              ORDER BY p.id DESC'  // DESC para mostrar os mais recentes primeiro
+        );
+        $stmt->execute();
+        
+        $pedidos = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $pedido = new Pedido($row);
+            $pedido->itens = $this->listarItensDoPedido($pedido->id);
+            $pedidos[] = $pedido;
+        }
+        return $pedidos;
+    }
 
     public function listarPorCompradorPaginado(int $compradorId, int $limite, int $offset): array {
         $stmt = $this->pdo->prepare(
