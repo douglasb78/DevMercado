@@ -75,14 +75,25 @@ if ($pathInfo === '' && isset($_SERVER['REQUEST_URI'])) {
     }
 }
 $segmentos = array_values(array_filter(explode('/', $pathInfo), fn($s) => $s !== ''));
+
+# Atalho: se o primeiro segmento for só número, ele já é o id do pedido.
+# Assim dá pra buscar direto por /api/pedidos.php/123 (sem precisar do "id/").
+$id = null;
+if (isset($segmentos[0]) && ctype_digit($segmentos[0])) {
+    $id = (int) $segmentos[0];
+    $segmentos = array_slice($segmentos, 1);
+}
+
 for ($i = 0; $i < count($segmentos); $i += 2) {
     $chave = strtolower($segmentos[$i]);
     $params[$chave] = isset($segmentos[$i + 1]) ? rawurldecode($segmentos[$i + 1]) : '1';
 }
 
-$id = null;
-if (isset($params['id'])) { $id = (int) $params['id']; }
-elseif (isset($params['numero'])) { $id = (int) $params['numero']; }
+# Continua aceitando /id/123 e /numero/123 também.
+if ($id === null) {
+    if (isset($params['id'])) { $id = (int) $params['id']; }
+    elseif (isset($params['numero'])) { $id = (int) $params['numero']; }
+}
 
 $cliente = null;
 if (isset($params['cliente'])) { $cliente = trim($params['cliente']); }
@@ -206,8 +217,9 @@ if ($cliente) {
     exit;
 }
 
-# Ter limite e offset na API:
-if (isset($params['all'])) {
+# Sem id nem cliente: lista todos os pedidos (admin). Aceita também /all/1.
+# Vale tanto pra /api/pedidos.php quanto pra /api/pedidos.php/all/1.
+{
     $limit = isset($params['limit']) ? (int) $params['limit'] : 50;
     $offset = isset($params['offset']) ? (int) $params['offset'] : 0;
     $pedidos = $pedidoDao->listarTodosPaginado($limit, $offset);
@@ -245,7 +257,3 @@ if (isset($params['all'])) {
     echo json_encode(['pedidos' => $outArr], JSON_UNESCAPED_UNICODE);
     exit;
 }
-
-http_response_code(400);
-echo json_encode(['error' => 'Parâmetros inválidos. Use /id/123, /numero/123, /cliente/Nome ou /all/1.']);
-exit;
