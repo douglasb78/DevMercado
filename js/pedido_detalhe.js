@@ -18,7 +18,7 @@
     container.innerHTML = '<div class="pd-loading">Carregando itens...</div>';
 
     try {
-      const resp = await fetch('/api/pedidos.php?id=' + encodeURIComponent(pedidoId), {
+      const resp = await fetch('/api/pedidos.php/id/' + encodeURIComponent(pedidoId), {
         headers: { 'Accept': 'application/json' }
       });
       const data = await resp.json();

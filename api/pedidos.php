@@ -1,4 +1,22 @@
 <?php
+/*
+  ===== API de Pedidos — como usar (rapidão) =====
+
+  Cola o link no navegador. Tem que estar logado no site, senão não rola.
+  Os parâmetros vão depois da "/" agora (esquece o "?").
+
+  Ver um pedido pelo número:
+    /api/pedidos.php/id/123
+
+  Achar pedidos pelo nome do cliente (só admin):
+    /api/pedidos.php/cliente/Joao
+
+  Ver todos os pedidos (só admin):
+    /api/pedidos.php/all/1
+    /api/pedidos.php/all/1/limit/50/offset/0   <- pra paginar
+
+  Liga/desliga a API no $PEDIDOS_API_ENABLED aqui embaixo.
+*/
 require_once __DIR__ . '/../dao/Database.php';
 require_once __DIR__ . '/../dao/PedidoDAO.php';
 require_once __DIR__ . '/../dao/ProdutoDAO.php';
@@ -44,13 +62,31 @@ $pedidoDao = new PedidoDAO();
 $produtoDao = new ProdutoDAO();
 $usuarioDao = new UsuarioDAO();
 
+# Agora os parâmetros vêm pelo caminho da URL (com "/"), em pares chave/valor.
+# Ex.: /api/pedidos.php/id/123  vira  ['id' => '123']
+$params = [];
+$pathInfo = $_SERVER['PATH_INFO'] ?? '';
+if ($pathInfo === '' && isset($_SERVER['REQUEST_URI'])) {
+    # Plano B: se o PATH_INFO não vier, pega o que está depois do .php na URL.
+    $uri = (string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $script = $_SERVER['SCRIPT_NAME'] ?? '';
+    if ($script !== '' && strpos($uri, $script) === 0) {
+        $pathInfo = substr($uri, strlen($script));
+    }
+}
+$segmentos = array_values(array_filter(explode('/', $pathInfo), fn($s) => $s !== ''));
+for ($i = 0; $i < count($segmentos); $i += 2) {
+    $chave = strtolower($segmentos[$i]);
+    $params[$chave] = isset($segmentos[$i + 1]) ? rawurldecode($segmentos[$i + 1]) : '1';
+}
+
 $id = null;
-if (isset($_GET['id'])) { $id = (int) $_GET['id']; }
-elseif (isset($_GET['numero'])) { $id = (int) $_GET['numero']; }
+if (isset($params['id'])) { $id = (int) $params['id']; }
+elseif (isset($params['numero'])) { $id = (int) $params['numero']; }
 
 $cliente = null;
-if (isset($_GET['cliente'])) { $cliente = trim($_GET['cliente']); }
-elseif (isset($_GET['nome'])) { $cliente = trim($_GET['nome']); }
+if (isset($params['cliente'])) { $cliente = trim($params['cliente']); }
+elseif (isset($params['nome'])) { $cliente = trim($params['nome']); }
 
 if ($id) {
     $pedido = $pedidoDao->buscarPorId($id);
@@ -171,9 +207,9 @@ if ($cliente) {
 }
 
 # Ter limite e offset na API:
-if (isset($_GET['all'])) {
-    $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 50;
-    $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
+if (isset($params['all'])) {
+    $limit = isset($params['limit']) ? (int) $params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int) $params['offset'] : 0;
     $pedidos = $pedidoDao->listarTodosPaginado($limit, $offset);
 
     $outArr = [];
@@ -211,5 +247,5 @@ if (isset($_GET['all'])) {
 }
 
 http_response_code(400);
-echo json_encode(['error' => 'Parâmetros inválidos. Use id/numero ou cliente/nome ou all=1.']);
+echo json_encode(['error' => 'Parâmetros inválidos. Use /id/123, /numero/123, /cliente/Nome ou /all/1.']);
 exit;
